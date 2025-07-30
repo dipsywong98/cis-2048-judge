@@ -1,4 +1,4 @@
-import { mergeGridLeft, mergeRowLeft } from "./game";
+import { detectEndgame, generateNewTile, LOSE, mergeGridDown, mergeGridLeft, mergeGridRight, mergeGridUp, mergeRowLeft, Tile, WIN } from "./game";
 
 describe('2048 Game Logic', () => {
   describe('mergeRowLeft', () => {
@@ -125,4 +125,369 @@ describe('2048 Game Logic', () => {
       ]);
     });
   });
+
+  // Assumes the following functions are implemented and imported:
+  // mergeGridRight, mergeGridUp, mergeGridDown, generateNewTile, putNextNumber, detectEndgame, WIN, LOSE, createEmptyRow, createEmptyGrid
+
+  describe('mergeGridRight', () => {
+    it('should merge each row to the right (case 1)', () => {
+      const grid = [
+        [null, 2, null, 4],
+        [null, 2, null, 2],
+        [2, 4, 4, 2],
+        [null, null, null, null],
+      ];
+      expect(mergeGridRight(grid)).toEqual([
+        [null, null, 2, 4],
+        [null, null, null, 4],
+        [null, 2, 8, 2],
+        [null, null, null, null],
+      ]);
+    });
+
+    it('should merge each row to the right (case 2)', () => {
+      const grid = [
+        [null, 4, null, 8],
+        [null, 4, null, 4],
+        [4, 8, 8, 4],
+        [null, null, null, null],
+      ];
+      expect(mergeGridRight(grid)).toEqual([
+        [null, null, 4, 8],
+        [null, null, null, 8],
+        [null, 4, 16, 4],
+        [null, null, null, null],
+      ]);
+    });
+
+    it('should merge each row to the right (case 3)', () => {
+      const grid = [
+        [2, null, 2, null],
+        [null, 2, null, 2],
+        [2, null, 2, null],
+        [null, 2, null, 2],
+      ];
+      expect(mergeGridRight(grid)).toEqual([
+        [null, null, null, 4],
+        [null, null, null, 4],
+        [null, null, null, 4],
+        [null, null, null, 4],
+      ]);
+    });
+
+    it('should keep non-mergeable grid unchanged (case 4)', () => {
+      const grid = [
+        [2, 4, 2, 4],
+        [4, 2, 4, 2],
+        [2, 4, 2, 4],
+        [4, 2, 4, 2],
+      ];
+      expect(mergeGridRight(grid)).toEqual([
+        [2, 4, 2, 4],
+        [4, 2, 4, 2],
+        [2, 4, 2, 4],
+        [4, 2, 4, 2],
+      ]);
+    });
+
+    it('should keep empty grid unchanged (case 5)', () => {
+      const grid = [
+        [null, null, null, null],
+        [null, null, null, null],
+        [null, null, null, null],
+        [null, null, null, null],
+      ];
+      expect(mergeGridRight(grid)).toEqual([
+        [null, null, null, null],
+        [null, null, null, null],
+        [null, null, null, null],
+        [null, null, null, null],
+      ]);
+    });
+  });
+
+  describe('mergeGridUp', () => {
+    it('should merge grid upwards (case 1)', () => {
+      const grid = [
+        [null, null, 2, 4],
+        [2, 2, 2, 2],
+        [null, null, 2, 2],
+        [null, 2, 2, 2],
+      ];
+      expect(mergeGridUp(grid)).toEqual([
+        [2, 4, 4, 4],
+        [null, null, 4, 4],
+        [null, null, null, 2],
+        [null, null, null, null],
+      ]);
+    });
+
+    it('should merge grid upwards (case 2)', () => {
+      const grid = [
+        [null, null, 4, 8],
+        [4, 4, 4, 4],
+        [null, null, 4, 4],
+        [null, 4, 4, 4],
+      ];
+      expect(mergeGridUp(grid)).toEqual([
+        [4, 8, 8, 8],
+        [null, null, 8, 8],
+        [null, null, null, 4],
+        [null, null, null, null],
+      ]);
+    });
+
+    it('should merge grid upwards (case 3)', () => {
+      const grid = [
+        [2, null, 2, null],
+        [null, 2, null, 2],
+        [2, null, 2, null],
+        [null, 2, null, 2],
+      ];
+      expect(mergeGridUp(grid)).toEqual([
+        [4, 4, 4, 4],
+        [null, null, null, null],
+        [null, null, null, null],
+        [null, null, null, null],
+      ]);
+    });
+
+    it('should keep non-mergeable grid unchanged (case 4)', () => {
+      const grid = [
+        [2, 4, 2, 4],
+        [4, 2, 4, 2],
+        [2, 4, 2, 4],
+        [4, 2, 4, 2],
+      ];
+      expect(mergeGridUp(grid)).toEqual([
+        [2, 4, 2, 4],
+        [4, 2, 4, 2],
+        [2, 4, 2, 4],
+        [4, 2, 4, 2],
+      ]);
+    });
+
+    it('should keep empty grid unchanged (case 5)', () => {
+      const grid = [
+        [null, null, null, null],
+        [null, null, null, null],
+        [null, null, null, null],
+        [null, null, null, null],
+      ];
+      expect(mergeGridUp(grid)).toEqual([
+        [null, null, null, null],
+        [null, null, null, null],
+        [null, null, null, null],
+        [null, null, null, null],
+      ]);
+    });
+  });
+
+  describe('mergeGridDown', () => {
+    it('should merge grid downwards (case 1)', () => {
+      const grid = [
+        [null, null, 2, 4],
+        [2, 2, 2, 2],
+        [null, null, 2, 2],
+        [null, 2, 2, 2],
+      ];
+      expect(mergeGridDown(grid)).toEqual([
+        [null, null, null, null],
+        [null, null, null, 4],
+        [null, null, 4, 2],
+        [2, 4, 4, 4],
+      ]);
+    });
+
+    it('should merge grid downwards (case 2)', () => {
+      const grid = [
+        [null, null, 4, 8],
+        [4, 4, 4, 4],
+        [null, null, 4, 4],
+        [null, 4, 4, 4],
+      ];
+      expect(mergeGridDown(grid)).toEqual([
+        [null, null, null, null],
+        [null, null, null, 8],
+        [null, null, 8, 4],
+        [4, 8, 8, 8],
+      ]);
+    });
+
+    it('should merge grid downwards (case 3)', () => {
+      const grid = [
+        [2, null, 2, null],
+        [null, 2, null, 2],
+        [2, null, 2, null],
+        [null, 2, null, 2],
+      ];
+      expect(mergeGridDown(grid)).toEqual([
+        [null, null, null, null],
+        [null, null, null, null],
+        [null, null, null, null],
+        [4, 4, 4, 4],
+      ]);
+    });
+
+    it('should keep non-mergeable grid unchanged (case 4)', () => {
+      const grid = [
+        [2, 4, 2, 4],
+        [4, 2, 4, 2],
+        [2, 4, 2, 4],
+        [4, 2, 4, 2],
+      ];
+      expect(mergeGridDown(grid)).toEqual([
+        [2, 4, 2, 4],
+        [4, 2, 4, 2],
+        [2, 4, 2, 4],
+        [4, 2, 4, 2],
+      ]);
+    });
+
+    it('should keep empty grid unchanged (case 5)', () => {
+      const grid = [
+        [null, null, null, null],
+        [null, null, null, null],
+        [null, null, null, null],
+        [null, null, null, null],
+      ];
+      expect(mergeGridDown(grid)).toEqual([
+        [null, null, null, null],
+        [null, null, null, null],
+        [null, null, null, null],
+        [null, null, null, null],
+      ]);
+    });
+  });
+
+  describe('generateNewTile', () => {
+    function assertNextGrid(result: Tile[][], original: Tile[][]) {
+      // Should be a new grid, not the same reference
+      expect(result).not.toBe(original);
+
+      // Should have exactly one more non-null cell than original
+      const countNonNull = (g: Tile[][]) =>
+        g.flat().filter(x => x !== null).length;
+      expect(countNonNull(result)).toBe(countNonNull(original) + 1);
+
+      // The new cell should be 2 or 4
+      const diff: [number, number][] = [];
+      for (let i = 0; i < 4; i++) for (let j = 0; j < 4; j++) {
+        if (original[i][j] !== result[i][j]) diff.push([i, j]);
+      }
+      expect(diff.length).toBe(1);
+      const [i, j] = diff[0];
+      expect([2, 4]).toContain(result[i][j]);
+    }
+
+    it('returns a new copy of grid with additional 2 or 4 (case 1)', () => {
+      const grid = [
+        createEmptyRow(),
+        [2, 2, 2, 2],
+        createEmptyRow(),
+        [2, 2, 2, 2],
+      ];
+      const result = generateNewTile(grid);
+      assertNextGrid(result, grid);
+    });
+
+    it('returns a new copy of grid with additional 2 or 4 (case 2)', () => {
+      const grid = [
+        [2, 2, 2, 2],
+        createEmptyRow(),
+        [2, 2, 2, 2],
+        createEmptyRow(),
+      ];
+      const result = generateNewTile(grid);
+      assertNextGrid(result, grid);
+    });
+
+    it('returns a new copy of grid with additional 2 or 4 (case 3)', () => {
+      const grid = [
+        [null, 2, null, 2],
+        [null, 2, null, 2],
+        [null, 2, null, 2],
+        [null, 2, null, 2],
+      ];
+      const result = generateNewTile(grid);
+      assertNextGrid(result, grid);
+    });
+
+    it('returns a new copy of grid with additional 2 or 4 (case 4)', () => {
+      const grid = [
+        [2, null, 2, null],
+        [2, null, 2, null],
+        [2, null, 2, null],
+        [2, null, 2, null],
+      ];
+      const result = generateNewTile(grid);
+      assertNextGrid(result, grid);
+    });
+  });
+
+  describe('detectEndgame', () => {
+    it('empty grid is in progress', () => {
+      const grid = [
+        createEmptyRow(),
+        createEmptyRow(),
+        createEmptyRow(),
+        createEmptyRow(),
+      ];
+      expect(detectEndgame(grid)).toBe(null);
+    });
+
+    it('filled but mergeable is in progress', () => {
+      const grid = [
+        [2, 2, 2, 2],
+        [2, 2, 2, 2],
+        [2, 2, 2, 2],
+        [2, 2, 2, 2],
+      ];
+      expect(detectEndgame(grid)).toBe(null);
+    });
+
+    it('filled but mergeable x is in progress', () => {
+      const grid = [
+        [4, 4, 2, 4],
+        [8, 2, 4, 2],
+        [2, 4, 2, 4],
+        [4, 2, 4, 2],
+      ];
+      expect(detectEndgame(grid)).toBe(null);
+    });
+
+    it('filled but mergeable y is in progress', () => {
+      const grid = [
+        [4, 8, 2, 4],
+        [4, 2, 4, 2],
+        [2, 4, 2, 4],
+        [4, 2, 4, 2],
+      ];
+      expect(detectEndgame(grid)).toBe(null);
+    });
+
+    it('filled not mergeable is lose', () => {
+      const grid = [
+        [2, 4, 2, 4],
+        [4, 2, 4, 2],
+        [2, 4, 2, 4],
+        [4, 2, 4, 2],
+      ];
+      expect(detectEndgame(grid)).toBe(LOSE);
+    });
+
+    it('contains 2048 is win', () => {
+      const grid = [
+        [2, 4, 2, 4],
+        [4, 2, 4, 2],
+        [2, 4, 2, 4],
+        [4, 2, 4, 2048],
+      ];
+      expect(detectEndgame(grid)).toBe(WIN);
+    });
+  });
 });
+
+function createEmptyRow(): (Tile)[] {
+  return [null, null, null, null];
+}

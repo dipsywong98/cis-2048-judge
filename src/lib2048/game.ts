@@ -1,9 +1,9 @@
-type Tile = number | null;
+export type Tile = number | null;
 
 const mergeRowLeft = (row: Tile[]): Tile[] => {
   const nonZeroTiles = row.filter(tile => tile !== null);
   const mergedRow: Tile[] = [];
-  while(nonZeroTiles.length > 0) {
+  while (nonZeroTiles.length > 0) {
     const firstTile = nonZeroTiles.shift()!;
     if (firstTile === nonZeroTiles[0]) {
       mergedRow.push(firstTile * 2);
@@ -50,24 +50,49 @@ const mergeGridDown = (grid: Tile[][]): Tile[][] => {
 };
 
 const generateNewTile = (grid: Tile[][]): Tile[][] => {
-  const emptyTiles: { row: number, col: number }[] = [];
-  for (let i = 0; i < grid.length; i++) {
-    for (let j = 0; j < grid[i].length; j++) {
-      if (grid[i][j] === null) {
-        emptyTiles.push({ row: i, col: j });
-      }
-    }
+  const emptyTiles = grid
+    .flatMap((row, rowIndex) =>
+      row.map((tile, colIndex) => ({ tile, rowIndex, colIndex }))
+    )
+    .filter(({ tile }) => tile === null);
+
+  if (emptyTiles.length === 0) {
+    return grid;
   }
 
-  if (emptyTiles.length === 0) return grid;
-
   const randomIndex = Math.floor(Math.random() * emptyTiles.length);
-  const { row, col } = emptyTiles[randomIndex];
+  const { rowIndex, colIndex } = emptyTiles[randomIndex];
   const newGrid = grid.map(r => [...r]);
-  newGrid[row][col] = 2;
-
+  newGrid[rowIndex][colIndex] = 2;
   return newGrid;
 }
+
+const WIN = 'win';
+const LOSE = 'lose';
+
+type EndgameStatus = typeof WIN | typeof LOSE | null;
+
+const detectEndgame = (grid: Tile[][]): EndgameStatus => {
+  // Check for 2048 tile
+  if (grid.some(row => row.some(it => it === 2048))) {
+    return WIN;
+  }
+  // Check for any empty tile
+  if (grid.some(row => row.some(it => it === null))) {
+    return null;
+  }
+  // Check if any move changes the grid
+  const originalGrid = JSON.stringify(grid);
+  if (
+    JSON.stringify(mergeGridLeft(grid)) !== originalGrid ||
+    JSON.stringify(mergeGridRight(grid)) !== originalGrid ||
+    JSON.stringify(mergeGridUp(grid)) !== originalGrid ||
+    JSON.stringify(mergeGridDown(grid)) !== originalGrid
+  ) {
+    return null;
+  }
+  return LOSE;
+};
 
 export {
   mergeRowLeft,
@@ -76,5 +101,8 @@ export {
   mergeGridRight,
   mergeGridUp,
   mergeGridDown,
-  generateNewTile
+  generateNewTile,
+  detectEndgame,
+  WIN,
+  LOSE,
 };
