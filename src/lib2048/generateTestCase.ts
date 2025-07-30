@@ -2,7 +2,7 @@ import { Tile } from "./game";
 import { pickOne, range } from "./utils";
 
 const genDigit = (exclude: number[] = []): number => {
-  const digits = [2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048];
+  const digits = [2, 4, 8, 16, 32, 64, 128, 256, 512, 1024];
   const filtered = digits.filter(d => !exclude.includes(d));
   return filtered[Math.floor(Math.random() * filtered.length)];
 };
@@ -34,10 +34,19 @@ export class RowGen {
     return row;
   };
 
-  twoMergeableAndDigit = (): Tile[] => {
+  twoMergeableFullRow = (): Tile[] => {
     const row = this.fullUnmergeable();
-    const index = pickOne(range(0, row.length - 1));
-    const index2 = pickOne(range(index + 1, row.length));
+    const index = pickOne(range(0, row.length - 2));
+    const digit = genDigit();
+    row[index] = digit;
+    row[index + 1] = digit;
+    return row;
+  };
+
+  twoMergeableWithGap = (): Tile[] => {
+    const row = this.fullUnmergeable();
+    const index = pickOne(range(0, row.length - 2));
+    const index2 = pickOne(range(index + 2, row.length));
     const digit = genDigit();
     row[index] = digit;
     row[index2] = digit;
@@ -92,6 +101,57 @@ export class RowGen {
   };
 }
 
-type Feature = keyof RowGen;
+type RowFeature = keyof RowGen;
 
-const f: Feature = "empty";
+export class GridGen {
+  private rowGen: RowGen;
+  constructor(private size: number) {
+    this.rowGen = new RowGen(size);
+  }
+
+  private materialize = (features: RowFeature[]) => {
+    return features.map((feature) => this.rowGen[feature]());
+  }
+
+  genAGrid = () => {
+    const features = Object.keys(this.rowGen) as RowFeature[];
+    const rowFeatures = Array(this.size).fill(null).map(() => pickOne(features));
+    return {
+      features: Array.from(new Set(rowFeatures)),
+      grid: this.materialize(rowFeatures),
+    };
+  }
+
+  genFullGrid = () => {
+    const fullRowFeatures: RowFeature[] = [
+      'fourMergeable2Kinds',
+      'fourMergeableSameKind',
+      'threeMergeableAndDigit',
+      'twoMergeableFullRow',
+      'fullUnmergeable',
+    ];
+    const rowFeatures = Array(this.size).fill(null).map(() => pickOne(fullRowFeatures));
+    return {
+      features: Array.from(new Set(rowFeatures)),
+      grid: this.materialize(rowFeatures),
+    };
+  }
+
+  genFullUnmergeableGrid = () => {
+    const grid = Array(this.size).fill(null).map(() => this.rowGen.fullUnmergeable());
+    const verticalUnmergeableGrid = grid.map((row, rowIndex) => row.map((tile, colIndex) => {
+      const tileAbove = grid[rowIndex - 1]?.[colIndex] ?? undefined;
+      const tileBelow = grid[rowIndex + 1]?.[colIndex] ?? undefined;
+      const tileLeft = row[colIndex - 1] ?? undefined;
+      const tileRight = row[colIndex + 1] ?? undefined;
+      if (tileAbove === tile || tileBelow === tile) {
+        return pickOne([tileAbove, tileBelow, tileLeft, tileRight].filter(t => t !== undefined));
+      }
+      return tile;
+    }));
+    return {
+      features: [],
+      grid: verticalUnmergeableGrid,
+    }
+  }
+}

@@ -1,3 +1,5 @@
+import { transpose } from "./utils";
+
 export type Tile = number | null;
 
 const mergeRowLeft = (row: Tile[]): Tile[] => {
@@ -33,10 +35,6 @@ const mergeGridRight = (grid: Tile[][]): Tile[][] => {
   return grid.map(row => mergeRowRight(row));
 };
 
-const transpose = (grid: Tile[][]): Tile[][] => {
-  return grid[0].map((_, colIndex) => grid.map(row => row[colIndex]));
-};
-
 const mergeGridUp = (grid: Tile[][]): Tile[][] => {
   const transposedGrid = transpose(grid);
   const mergedTransposedGrid = mergeGridLeft(transposedGrid);
@@ -50,18 +48,18 @@ const mergeGridDown = (grid: Tile[][]): Tile[][] => {
 };
 
 const generateNewTile = (grid: Tile[][]): Tile[][] => {
-  const emptyTiles = grid
+  const emptyLocations = grid
     .flatMap((row, rowIndex) =>
       row.map((tile, colIndex) => ({ tile, rowIndex, colIndex }))
     )
     .filter(({ tile }) => tile === null);
 
-  if (emptyTiles.length === 0) {
+  if (emptyLocations.length === 0) {
     return grid;
   }
 
-  const randomIndex = Math.floor(Math.random() * emptyTiles.length);
-  const { rowIndex, colIndex } = emptyTiles[randomIndex];
+  const randomIndex = Math.floor(Math.random() * emptyLocations.length);
+  const { rowIndex, colIndex } = emptyLocations[randomIndex];
   const newGrid = grid.map(r => [...r]);
   newGrid[rowIndex][colIndex] = 2;
   return newGrid;

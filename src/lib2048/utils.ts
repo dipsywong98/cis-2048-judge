@@ -13,3 +13,7 @@ export const range = (start: number, end: number): number[] => {
   // start and end are inclusive
   return Array.from({ length: end - start }, (_, i) => start + i);
 };
+
+export const transpose = <T>(grid: T[][]): T[][] => {
+  return grid[0].map((_, colIndex) => grid.map(row => row[colIndex]));
+};
