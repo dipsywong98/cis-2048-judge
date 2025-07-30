@@ -122,7 +122,7 @@ export class GridGen {
     };
   }
 
-  genFullGrid = () => {
+  genFullMergeableGrid = () => {
     const fullRowFeatures: RowFeature[] = [
       'fourMergeable2Kinds',
       'fourMergeableSameKind',
@@ -130,7 +130,10 @@ export class GridGen {
       'twoMergeableFullRow',
       'fullUnmergeable',
     ];
-    const rowFeatures = Array(this.size).fill(null).map(() => pickOne(fullRowFeatures));
+    const rowFeatures: RowFeature[] = Array(this.size).fill(null).map(() => pickOne(fullRowFeatures));
+    if (!rowFeatures.some(feature => feature !== 'fullUnmergeable')) {
+      rowFeatures[pickOne(range(0, rowFeatures.length))] = pickOne(fullRowFeatures.filter(f => f !== 'fullUnmergeable'));
+    }
     return {
       features: Array.from(new Set(rowFeatures)),
       grid: this.materialize(rowFeatures),
