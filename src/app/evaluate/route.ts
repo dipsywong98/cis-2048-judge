@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
 import axios, { AxiosError } from "axios";
-import { grade } from "./grade";
-import { generateTestCases } from "@/lib/generateTestCase";
-import config from "@/lib/systemConfig";
+import config from "@/lib2048/systemConfig";
 
 interface IEvaluateRequest {
   callbackUrl: string
@@ -55,3 +53,11 @@ export async function POST(req: Request) {
   await axios.post(callbackUrl, payload, { headers: { Authorization: config.COORDINATOR_TOKEN } })
   return NextResponse.json({ result: 'ok' })
 }
+
+function grade(actuals: any, expecteds: any, configs: any): { message: any; score: any; } {
+  throw new Error("Function not implemented.");
+}
+function generateTestCases(): { input: any; output: any; configs: any; } {
+  throw new Error("Function not implemented.");
+}
+

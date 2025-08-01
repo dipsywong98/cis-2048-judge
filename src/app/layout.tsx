@@ -5,8 +5,8 @@ import 'github-markdown-css'
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Klotski",
-  description: "Klotski is an interesting game, why not making it?",
+  title: "2048",
+  description: "2048 is an interesting game, why not making it?",
 };
 
 export default function RootLayout({
