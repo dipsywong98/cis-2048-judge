@@ -17,13 +17,13 @@ export class RowGen {
     return Array(this.length).fill(null);
   };
 
-  fullUnmergeableRow = (): Tile[] => {
+  fullUnmergeableRow = (initialExcludeDigits: number[] = []): Tile[] => {
     const row = this.emptyRow();
-    const existingDigits: number[] = [];
+    const excludeDigits = [...initialExcludeDigits];
     for (let i = 0; i < row.length; i++) {
-      const digit = genDigit(existingDigits);
+      const digit = genDigit(excludeDigits);
       row[i] = digit;
-      existingDigits.push(digit);
+      excludeDigits.push(digit);
     }
     return row;
   };
@@ -99,58 +99,140 @@ export class RowGen {
   fourMergeableSameKindRow = (): Tile[] => {
     return Array(this.length).fill(genDigit());
   };
+
+  cascadingMergeableRow = (): Tile[] => {
+    const row = this.emptyRow();
+    const digit = genDigit();
+    row[0] = digit;
+    row[1] = digit;
+    row[2] = digit * 2;
+    row[3] = digit * 4;
+    return row;
+  }
+
+  almostWinRow = (): Tile[] => {
+    const row = this.fullUnmergeableRow();
+    const index = pickOne(range(0, row.length - 2));
+    const digit = 1024;
+    row[index] = digit;
+    row[index + 1] = digit;
+    return row;
+  }
 }
 
 export type RowFeature = keyof RowGen;
+
+interface GridGenResult {
+  rowFeatures: RowFeature[];
+  grid: Grid;
+}
 
 export class GridGen {
   private size: number
   public rowGen: RowGen;
   private features: RowFeature[]
+  private fullRowFeatures: RowFeature[];
   constructor(rowGen: RowGen) {
     this.rowGen = rowGen;
     this.size = rowGen.emptyRow().length;
     this.features = Object.keys(rowGen) as RowFeature[];
+
+    this.fullRowFeatures = [
+      'fourMergeable2KindsRow',
+      'fourMergeableSameKindRow',
+      'threeMergeableAndDigitRow',
+      'twoMergeableFullRow',
+      'fullUnmergeableRow',
+      'cascadingMergeableRow',
+      'almostWinRow',
+    ];
   }
 
   private materialize = (features: RowFeature[]) => {
     return features.map((feature) => this.rowGen[feature]());
   }
 
-  genGrid = (features: RowFeature[] = this.features): Grid => {
+  genGrid = (features: RowFeature[] = this.features): GridGenResult => {
     const rowFeatures = Array(this.size).fill(null).map(() => pickOne(features));
-    return this.materialize(rowFeatures)
+    return {
+      rowFeatures,
+      grid: this.materialize(rowFeatures)
+    }
   }
 
-  genFullMergeableGrid = (): Grid => {
-    const fullRowFeatures: RowFeature[] = [
-      'fourMergeable2KindsRow',
-      'fourMergeableSameKindRow',
-      'threeMergeableAndDigitRow',
-      'twoMergeableFullRow',
-      'fullUnmergeableRow',
-    ];
-    const rowFeatures: RowFeature[] = Array(this.size).fill(null).map(() => pickOne(fullRowFeatures));
+  genFullMergeableGrid = (features: RowFeature[] = this.fullRowFeatures): GridGenResult => {
+    const chosenFullRowFeatures = features.filter(feature => this.fullRowFeatures.includes(feature));
+    const rowFeatures: RowFeature[] = Array(this.size).fill(null).map(() => pickOne(chosenFullRowFeatures));
     if (!rowFeatures.some(feature => feature !== 'fullUnmergeableRow')) {
       rowFeatures[pickOne(range(0, rowFeatures.length))] = (
-        pickOne(fullRowFeatures.filter(f => f !== 'fullUnmergeableRow'))
+        pickOne(chosenFullRowFeatures.filter(f => f !== 'fullUnmergeableRow'))
       );
     }
-    return this.materialize(rowFeatures)
+    return {
+      rowFeatures,
+      grid: this.materialize(rowFeatures)
+    }
   }
 
-  genFullUnmergeableGrid = (): Grid => {
-    const grid = Array(this.size).fill(null).map(() => this.rowGen.fullUnmergeableRow());
-    const verticalUnmergeableGrid = grid.map((row, rowIndex) => row.map((tile, colIndex) => {
-      const tileAbove = grid[rowIndex - 1]?.[colIndex] ?? undefined;
-      const tileBelow = grid[rowIndex + 1]?.[colIndex] ?? undefined;
-      const tileLeft = row[colIndex - 1] ?? undefined;
-      const tileRight = row[colIndex + 1] ?? undefined;
-      if (tileAbove === tile || tileBelow === tile) {
-        return pickOne([tileAbove, tileBelow, tileLeft, tileRight].filter(t => t !== undefined));
+  private genUnmergeableGrid = () => {
+    const grid= this.materialize(Array(this.size).fill('emptyRow'));
+    for (let rowIndex = 0; rowIndex < this.size; rowIndex++) {
+      for (let colIndex = 0; colIndex < this.size; colIndex++) {
+        const tileAbove = grid[rowIndex - 1]?.[colIndex] ?? 0;
+        const tileLeft = grid[rowIndex]?.[colIndex - 1] ?? 0;
+        // exclude 2, 4 so new tile will not be mergeable
+        grid[rowIndex][colIndex] = genDigit([2, 4, tileAbove, tileLeft])
       }
-      return tile;
-    }));
-    return verticalUnmergeableGrid;
+    }
+    return grid
+  }
+
+  genMergeLeftBecomeUnmergeableGrid = (full: boolean): Grid => {
+    // start with a full grid that is unmergeable
+    const grid = this.genUnmergeableGrid()
+
+    // then create a gap
+    // after merge left, gap must appears at the right most
+    // but gap can be in the middle of grid
+    // so choose a random location
+    // push all tiles on its right to the right (and rightmost tile is lost)
+    const rowIndex = pickOne(range(0, this.size));
+    const colIndex = pickOne(range(0, this.size - 1));
+    for (let j = this.size - 1; j > colIndex; j--) {
+      grid[rowIndex][j] = grid[rowIndex][j - 1];
+    }
+    grid[rowIndex][colIndex] = null;
+
+    // optionally make the grid was originally full before the merge left
+    // by splitting the tile on the new gap's right
+    // ... (gap) (2n) ... -> ... (n) (n) ...
+    // so after merge left, it becomes
+    // ... (2n) (?) ...
+    if (full) {
+      grid[rowIndex][colIndex] = (grid[rowIndex][colIndex + 1] ?? 8) / 2
+      grid[rowIndex][colIndex + 1] = grid[rowIndex][colIndex]
+      // if the row satisfy this pattern
+      // ... (n) (gap) (2n) ...
+      // the above will make the row become
+      // ... (n) (n) (n) ...
+      // but suppose we want the result to be below
+      // ... (n) (2n) (?) ...
+      // such that everything before the gap is unaffected
+      // now it becomes
+      // ... (2n) (n) (?) ...
+      // which breaks our expectation and make the new 2n might be mergeable vertically
+      // so we need to reroll the (n) tile to other value
+      if (grid[rowIndex][colIndex - 1] === grid[rowIndex][colIndex]) {
+        grid[rowIndex][colIndex - 1] = genDigit([
+          2, 
+          4, 
+          grid[rowIndex][colIndex], 
+          grid[rowIndex][colIndex - 2] ?? 0,
+          grid[rowIndex - 1]?.[colIndex - 1] ?? 0,
+          grid[rowIndex + 1]?.[colIndex - 1] ?? 0,
+        ]);
+      }
+    }
+    return  grid
   }
 }

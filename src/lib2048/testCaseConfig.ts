@@ -31,16 +31,16 @@ enum TestCase {
 const createGridForEachFeature = (gridGen: GridGen): Grid[] => {
   const features = Object.keys(gridGen.rowGen) as (RowFeature)[];
   const grids: Grid[] = [];
-  const pureGrids = features.map(feature => gridGen.genGrid([feature]))
+  const pureGrids = features.map(feature => gridGen.genGrid([feature]).grid)
   grids.push(...pureGrids);
-  const randomGrids = Array(10).fill(null).map(() => gridGen.genGrid(features));
+  const randomGrids = Array(10).fill(null).map(() => gridGen.genGrid(features).grid);
   grids.push(...randomGrids);
   return grids;
 }
 
 const basicGridGen = new GridGen(new RowGen(4));
 
-const sameGrid = (left: Tile[][], right: Tile[][]): boolean => {
+const isSameGrid = (left: Tile[][], right: Tile[][]): boolean => {
   return JSON.stringify(left) === JSON.stringify(right);
 }
 
@@ -54,7 +54,7 @@ const evaluateGridPairs = (fullScore: number, calculateExpectedGrid: (original: 
 
   const expectedGrids = originalGrids.map(calculateExpectedGrid)
   const isCorrect = transpose([expectedGrids, actualGrids])
-    .map(([expected, actual]) => sameGrid(expected, actual));
+    .map(([expected, actual]) => isSameGrid(expected, actual));
   const numberOfCorrect = isCorrect.filter(correct => correct).length;
 
   const score = numberOfCorrect / isCorrect.length * fullScore;
@@ -148,18 +148,16 @@ export const testCaseConfig = {
     requirementBatch: RequirementBatch.BASIC,
     gridsGenerator: () => {
       return [
-        basicGridGen.genGrid(['emptyRow']),
-        inject2048(basicGridGen.genGrid(['emptyRow'])),
-        basicGridGen.genGrid(),
-        inject2048(basicGridGen.genGrid()),
-        transpose(basicGridGen.genGrid()),
-        inject2048(transpose(basicGridGen.genGrid())),
-        basicGridGen.genFullMergeableGrid(),
-        inject2048(basicGridGen.genFullMergeableGrid()),
-        transpose(basicGridGen.genFullMergeableGrid()),
-        inject2048(transpose(basicGridGen.genFullMergeableGrid())),
-        basicGridGen.genFullUnmergeableGrid(),
-        inject2048(basicGridGen.genFullUnmergeableGrid()),
+        basicGridGen.genGrid(['emptyRow']).grid,
+        inject2048(basicGridGen.genGrid(['emptyRow']).grid),
+        basicGridGen.genGrid().grid,
+        inject2048(basicGridGen.genGrid().grid),
+        transpose(basicGridGen.genGrid().grid),
+        inject2048(transpose(basicGridGen.genGrid().grid)),
+        basicGridGen.genFullMergeableGrid().grid,
+        inject2048(basicGridGen.genFullMergeableGrid().grid),
+        transpose(basicGridGen.genFullMergeableGrid().grid),
+        inject2048(transpose(basicGridGen.genFullMergeableGrid().grid)),
       ]
     },
     evaluateEndGame: (originalGrids: Grid[], actualEndGame: EndGameStatus[]) => {

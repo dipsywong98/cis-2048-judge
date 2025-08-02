@@ -1,4 +1,4 @@
-import { detectEndgame } from "./game";
+import { detectEndgame, generateNewTile, LOSE, mergeGridLeft } from "./game";
 import { GridGen, RowGen } from "./generateTestCase";
 
 const rowGen = new RowGen(4);
@@ -73,7 +73,7 @@ describe('GridGen', () => {
 
   describe('genFullMergeableGrid', () => {
     it('should generate a grid that is mergeable (not leading to end game)', () => {
-      const grid = gridGen.genFullMergeableGrid();
+      const { grid } = gridGen.genFullMergeableGrid();
       expect(grid.length).toBe(4);
       grid.forEach(row => {
         expect(row.length).toBe(4);
@@ -81,4 +81,41 @@ describe('GridGen', () => {
       expect(detectEndgame(grid)).toBe(false);
     });
   });
+
+  describe('genMergeLeftBecomeUnmergeableGrid', () => {
+    describe('full is false', () => {
+      Array(100).fill(null).forEach((_, idx) => {
+        it(`${idx} should generate a grid with empty that becomes unmergeable after a left merge`, () => {
+          const grid = gridGen.genMergeLeftBecomeUnmergeableGrid(false);
+          expect(grid.length).toBe(4);
+          grid.forEach(row => {
+            expect(row.length).toBe(4);
+          });
+          const mergedGrid = mergeGridLeft(grid);
+          const result = detectEndgame(generateNewTile(mergedGrid))
+          if (result !== LOSE) {
+            console.log(grid, mergedGrid)
+          }
+          expect(result).toBe(LOSE);
+        });
+      })
+    })
+    describe('full is true', () => {
+      Array(100).fill(null).forEach((_, idx) => {
+        it(`${idx} should generate a grid without empty that becomes unmergeable after a left merge`, () => {
+          const grid = gridGen.genMergeLeftBecomeUnmergeableGrid(true);
+          expect(grid.length).toBe(4);
+          grid.forEach(row => {
+            expect(row.length).toBe(4);
+          });
+          const mergedGrid = mergeGridLeft(grid);
+          const result = detectEndgame(generateNewTile(mergedGrid))
+          if (result !== LOSE) {
+            console.log(grid, mergedGrid)
+          }
+          expect(result).toBe(LOSE);
+        });
+      })
+    })
+  })
 });
