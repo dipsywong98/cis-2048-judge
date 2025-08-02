@@ -1,3 +1,4 @@
+// this file might not be needed
 import { detectEndgame, EndGameStatus, Grid, mergeGridDown, mergeGridLeft, mergeGridRight, mergeGridUp, Tile } from "./game";
 import { GridGen, RowFeature, RowGen } from "./generateTestCase";
 import { transpose, zip } from "./utils";
@@ -31,9 +32,9 @@ enum TestCase {
 const createGridForEachFeature = (gridGen: GridGen): Grid[] => {
   const features = Object.keys(gridGen.rowGen) as (RowFeature)[];
   const grids: Grid[] = [];
-  const pureGrids = features.map(feature => gridGen.genGrid([feature]).grid)
+  const pureGrids = features.map(feature => gridGen.genGrid([feature]))
   grids.push(...pureGrids);
-  const randomGrids = Array(10).fill(null).map(() => gridGen.genGrid(features).grid);
+  const randomGrids = Array(10).fill(null).map(() => gridGen.genGrid(features));
   grids.push(...randomGrids);
   return grids;
 }
@@ -148,12 +149,12 @@ export const testCaseConfig = {
     requirementBatch: RequirementBatch.BASIC,
     gridsGenerator: () => {
       return [
-        basicGridGen.genGrid(['emptyRow']).grid,
-        inject2048(basicGridGen.genGrid(['emptyRow']).grid),
-        basicGridGen.genGrid().grid,
-        inject2048(basicGridGen.genGrid().grid),
-        transpose(basicGridGen.genGrid().grid),
-        inject2048(transpose(basicGridGen.genGrid().grid)),
+        basicGridGen.genGrid(['emptyRow']),
+        inject2048(basicGridGen.genGrid(['emptyRow'])),
+        basicGridGen.genGrid(),
+        inject2048(basicGridGen.genGrid()),
+        transpose(basicGridGen.genGrid()),
+        inject2048(transpose(basicGridGen.genGrid())),
         basicGridGen.genFullMergeableGrid().grid,
         inject2048(basicGridGen.genFullMergeableGrid().grid),
         transpose(basicGridGen.genFullMergeableGrid().grid),

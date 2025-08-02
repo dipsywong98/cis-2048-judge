@@ -1,26 +1,26 @@
 import { NextResponse } from 'next/server';
 import config from '../../lib2048/systemConfig';
 import { notFound } from 'next/navigation';
-import { detectEndgame, generateNewTile, Grid, mergeGridDown, mergeGridLeft, mergeGridRight, mergeGridUp } from '@/lib2048/game';
+import { detectEndgame, Direction, generateNewTile, Grid, mergeGridDown, mergeGridLeft, mergeGridRight, mergeGridUp } from '@/lib2048/game';
 
-interface GridOpPayload {
+export interface GridOpPayload {
   grid: Grid
-  mergeDirection: 'up' | 'down' | 'left' | 'right'
+  mergeDirection: Direction
 }
 
-const mergeWithDirection = (grid: Grid, mergeDirection: 'up' | 'down' | 'left' | 'right'): Grid => {
+const mergeWithDirection = (grid: Grid, mergeDirection: Direction): Grid => {
   let mergedGrid: Grid;
   switch (mergeDirection) {
-    case 'up':
+    case Direction.UP:
       mergedGrid = mergeGridUp(grid);
       break;
-    case 'down':
+    case Direction.DOWN:
       mergedGrid = mergeGridDown(grid);
       break;
-    case 'left':
+    case Direction.LEFT:
       mergedGrid = mergeGridLeft(grid);
       break;
-    case 'right':
+    case Direction.RIGHT:
       mergedGrid = mergeGridRight(grid);
       break;
     default:

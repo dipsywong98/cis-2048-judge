@@ -1,5 +1,6 @@
-import { Grid, Tile } from "./game";
-import { pickOne, range } from "./utils";
+import { GridOpPayload } from "@/app/2048/route";
+import { Direction, Grid, Tile } from "./game";
+import { mirror, pickOne, range, shuffle, transpose } from "./utils";
 
 const genDigit = (exclude: number[] = []): number => {
   const digits = [2, 4, 8, 16, 32, 64, 128, 256, 512, 1024];
@@ -152,15 +153,12 @@ export class GridGen {
     return features.map((feature) => this.rowGen[feature]());
   }
 
-  genGrid = (features: RowFeature[] = this.features): GridGenResult => {
+  genGrid = (features: RowFeature[] = this.features): Grid => {
     const rowFeatures = Array(this.size).fill(null).map(() => pickOne(features));
-    return {
-      rowFeatures,
-      grid: this.materialize(rowFeatures)
-    }
+    return this.materialize(rowFeatures)
   }
 
-  genFullMergeableGrid = (features: RowFeature[] = this.fullRowFeatures): GridGenResult => {
+  genFullMergeableGrid = (features: RowFeature[] = this.fullRowFeatures): { rowFeatures: RowFeature[], grid: Grid } => {
     const chosenFullRowFeatures = features.filter(feature => this.fullRowFeatures.includes(feature));
     const rowFeatures: RowFeature[] = Array(this.size).fill(null).map(() => pickOne(chosenFullRowFeatures));
     if (!rowFeatures.some(feature => feature !== 'fullUnmergeableRow')) {
@@ -174,8 +172,8 @@ export class GridGen {
     }
   }
 
-  private genUnmergeableGrid = () => {
-    const grid= this.materialize(Array(this.size).fill('emptyRow'));
+  private genUnmergeableGrid = (): Grid => {
+    const grid = this.materialize(Array(this.size).fill('emptyRow'));
     for (let rowIndex = 0; rowIndex < this.size; rowIndex++) {
       for (let colIndex = 0; colIndex < this.size; colIndex++) {
         const tileAbove = grid[rowIndex - 1]?.[colIndex] ?? 0;
@@ -224,15 +222,81 @@ export class GridGen {
       // so we need to reroll the (n) tile to other value
       if (grid[rowIndex][colIndex - 1] === grid[rowIndex][colIndex]) {
         grid[rowIndex][colIndex - 1] = genDigit([
-          2, 
-          4, 
-          grid[rowIndex][colIndex], 
+          2,
+          4,
+          grid[rowIndex][colIndex],
           grid[rowIndex][colIndex - 2] ?? 0,
           grid[rowIndex - 1]?.[colIndex - 1] ?? 0,
           grid[rowIndex + 1]?.[colIndex - 1] ?? 0,
         ]);
       }
     }
-    return  grid
+    return grid
   }
+}
+
+interface EvaluationRequest {
+  opPayload: GridOpPayload
+  description: string
+}
+
+
+const directionTransformations = {
+  [Direction.LEFT]: (grid) => grid,
+  [Direction.RIGHT]: (grid) => mirror(grid),
+  [Direction.UP]: (grid) => transpose(grid),
+  [Direction.DOWN]: (grid) => transpose(mirror(grid)),
+} satisfies Record<typeof Direction[keyof typeof Direction], (grid: Grid) => Grid>;
+
+export const generateTestCases = (gridGen: GridGen) => {
+  const requests: EvaluationRequest[] = [];
+  Object.entries(directionTransformations).forEach(([direction, transformOriginalGrid]) => {
+    requests.push({
+      opPayload: {
+        grid: transformOriginalGrid(gridGen.genGrid(['emptyRow'])),
+        mergeDirection: direction
+      },
+      description: 'Full empty'
+    });
+    for (let j = 0; j < 3; j++) {
+      const features = shuffle(Object.keys(gridGen.rowGen) as RowFeature[]);
+      for (let i = 0; i < features.length; i += 4) {
+        const featureSet = features.slice(i, i + 4);
+        const grid = transformOriginalGrid(gridGen.genGrid(featureSet));
+        requests.push({
+          opPayload: {
+            grid,
+            mergeDirection: direction
+          },
+          description: `genGrid ${featureSet.join(',')}`
+        });
+      }
+      {
+        const { grid, rowFeatures } = gridGen.genFullMergeableGrid()
+        requests.push({
+          opPayload: {
+            grid: transformOriginalGrid(grid),
+            mergeDirection: direction
+          },
+          description: `genFullMergeableGrid ${rowFeatures.join()}`
+        })
+      }
+      requests.push({
+        opPayload: {
+          grid: transformOriginalGrid(gridGen.genMergeLeftBecomeUnmergeableGrid(false)),
+          mergeDirection: direction
+        },
+        description: `genMergeLeftBecomeUnmergeableGrid false`
+      });
+      requests.push({
+        opPayload: {
+          grid: transformOriginalGrid(gridGen.genMergeLeftBecomeUnmergeableGrid(true)),
+          mergeDirection: direction
+        },
+        description: `genMergeLeftBecomeUnmergeableGrid true`
+      });
+    }
+  })
+
+  return requests;
 }

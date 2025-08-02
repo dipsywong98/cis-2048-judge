@@ -2,6 +2,13 @@ import { transpose } from "./utils";
 
 export type Tile = number | null;
 export type Grid = Tile[][];
+export const Direction = {
+  UP: 'UP',
+  DOWN: 'DOWN',
+  LEFT: 'LEFT',
+  RIGHT: 'RIGHT',
+}
+export type Direction = typeof Direction[keyof typeof Direction];
 
 export const mergeRowLeft = (row: Tile[]): Tile[] => {
   const nonZeroTiles = row.filter(tile => tile !== null);
