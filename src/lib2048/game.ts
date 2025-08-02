@@ -1,8 +1,9 @@
 import { transpose } from "./utils";
 
 export type Tile = number | null;
+export type Grid = Tile[][];
 
-const mergeRowLeft = (row: Tile[]): Tile[] => {
+export const mergeRowLeft = (row: Tile[]): Tile[] => {
   const nonZeroTiles = row.filter(tile => tile !== null);
   const mergedRow: Tile[] = [];
   while (nonZeroTiles.length > 0) {
@@ -21,33 +22,33 @@ const mergeRowLeft = (row: Tile[]): Tile[] => {
   return mergedRow;
 };
 
-const mergeRowRight = (row: Tile[]): Tile[] => {
+export const mergeRowRight = (row: Tile[]): Tile[] => {
   const reversedRow = [...row].reverse();
   const mergedReversedRow = mergeRowLeft(reversedRow);
   return mergedReversedRow.reverse();
 };
 
-const mergeGridLeft = (grid: Tile[][]): Tile[][] => {
+export const mergeGridLeft = (grid: Tile[][]): Tile[][] => {
   return grid.map(row => mergeRowLeft(row));
 }
 
-const mergeGridRight = (grid: Tile[][]): Tile[][] => {
+export const mergeGridRight = (grid: Tile[][]): Tile[][] => {
   return grid.map(row => mergeRowRight(row));
 };
 
-const mergeGridUp = (grid: Tile[][]): Tile[][] => {
+export const mergeGridUp = (grid: Tile[][]): Tile[][] => {
   const transposedGrid = transpose(grid);
   const mergedTransposedGrid = mergeGridLeft(transposedGrid);
   return transpose(mergedTransposedGrid);
 };
 
-const mergeGridDown = (grid: Tile[][]): Tile[][] => {
+export const mergeGridDown = (grid: Tile[][]): Tile[][] => {
   const transposedGrid = transpose(grid);
   const mergedTransposedGrid = mergeGridRight(transposedGrid);
   return transpose(mergedTransposedGrid);
 };
 
-const generateNewTile = (grid: Tile[][]): Tile[][] => {
+export const generateNewTile = (grid: Tile[][]): Tile[][] => {
   const emptyLocations = grid
     .flatMap((row, rowIndex) =>
       row.map((tile, colIndex) => ({ tile, rowIndex, colIndex }))
@@ -65,12 +66,12 @@ const generateNewTile = (grid: Tile[][]): Tile[][] => {
   return newGrid;
 }
 
-const WIN = 'win';
-const LOSE = 'lose';
+export const WIN = 'win';
+export const LOSE = 'lose';
 
-type EndgameStatus = typeof WIN | typeof LOSE | null;
+export type EndGameStatus = typeof WIN | typeof LOSE | null;
 
-const detectEndgame = (grid: Tile[][]): EndgameStatus => {
+export const detectEndgame = (grid: Tile[][]): EndGameStatus => {
   // Check for 2048 tile
   if (grid.some(row => row.some(it => it === 2048))) {
     return WIN;
@@ -83,24 +84,9 @@ const detectEndgame = (grid: Tile[][]): EndgameStatus => {
   const originalGrid = JSON.stringify(grid);
   if (
     JSON.stringify(mergeGridLeft(grid)) !== originalGrid ||
-    JSON.stringify(mergeGridRight(grid)) !== originalGrid ||
-    JSON.stringify(mergeGridUp(grid)) !== originalGrid ||
     JSON.stringify(mergeGridDown(grid)) !== originalGrid
   ) {
     return null;
   }
   return LOSE;
-};
-
-export {
-  mergeRowLeft,
-  mergeRowRight,
-  mergeGridLeft,
-  mergeGridRight,
-  mergeGridUp,
-  mergeGridDown,
-  generateNewTile,
-  detectEndgame,
-  WIN,
-  LOSE,
 };

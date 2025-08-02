@@ -1,4 +1,4 @@
-import { Tile } from "./game";
+import { Grid, Tile } from "./game";
 import { pickOne, range } from "./utils";
 
 const genDigit = (exclude: number[] = []): number => {
@@ -13,12 +13,12 @@ export class RowGen {
   constructor(length = 4) {
     this.length = length;
   }
-  empty = (): Tile[] => {
+  emptyRow = (): Tile[] => {
     return Array(this.length).fill(null);
   };
 
-  fullUnmergeable = (): Tile[] => {
-    const row = this.empty();
+  fullUnmergeableRow = (): Tile[] => {
+    const row = this.emptyRow();
     const existingDigits: number[] = [];
     for (let i = 0; i < row.length; i++) {
       const digit = genDigit(existingDigits);
@@ -28,14 +28,14 @@ export class RowGen {
     return row;
   };
 
-  single = (): Tile[] => {
-    const row = this.empty();
+  singleDigitRow = (): Tile[] => {
+    const row = this.emptyRow();
     row[Math.floor(Math.random() * row.length)] = genDigit();
     return row;
   };
 
   twoMergeableFullRow = (): Tile[] => {
-    const row = this.fullUnmergeable();
+    const row = this.fullUnmergeableRow();
     const index = pickOne(range(0, row.length - 2));
     const digit = genDigit();
     row[index] = digit;
@@ -43,8 +43,8 @@ export class RowGen {
     return row;
   };
 
-  twoMergeableWithGap = (): Tile[] => {
-    const row = this.fullUnmergeable();
+  twoMergeableWithGapRow = (): Tile[] => {
+    const row = this.fullUnmergeableRow();
     const index = pickOne(range(0, row.length - 2));
     const index2 = pickOne(range(index + 2, row.length));
     const digit = genDigit();
@@ -58,8 +58,8 @@ export class RowGen {
     return row;
   };
 
-  twoMergeableAndEmpty = (): Tile[] => {
-    const row = this.empty();
+  twoMergeableAndSpaceRow = (): Tile[] => {
+    const row = this.emptyRow();
     const index = pickOne(range(0, row.length - 1));
     const index2 = pickOne(range(index + 1, row.length));
     const digit = genDigit();
@@ -69,24 +69,24 @@ export class RowGen {
     return row;
   };
 
-  threeMergeableAndEmpty = (): Tile[] => {
+  threeMergeableAndSpaceRow = (): Tile[] => {
     const digit = genDigit();
-    const row: Tile[] = this.empty().map(() => digit);
+    const row: Tile[] = this.emptyRow().map(() => digit);
     const emptyIndex = pickOne(range(0, row.length));
     row[emptyIndex] = null;
     return row;
   };
 
-  threeMergeableAndDigit = (): Tile[] => {
+  threeMergeableAndDigitRow = (): Tile[] => {
     const digit = genDigit();
-    const row: Tile[] = this.empty().map(() => digit);
+    const row: Tile[] = this.emptyRow().map(() => digit);
     const putDigitIndex = pickOne([0, row.length - 1]);
     row[putDigitIndex] = genDigit([digit]);
     return row;
   };
 
-  fourMergeable2Kinds = (): Tile[] => {
-    const row = this.empty();
+  fourMergeable2KindsRow = (): Tile[] => {
+    const row = this.emptyRow();
     const digit1 = genDigit();
     const digit2 = genDigit([digit1]);
     row[0] = digit1;
@@ -96,52 +96,51 @@ export class RowGen {
     return row;
   };
 
-  fourMergeableSameKind = (): Tile[] => {
+  fourMergeableSameKindRow = (): Tile[] => {
     return Array(this.length).fill(genDigit());
   };
 }
 
-type RowFeature = keyof RowGen;
+export type RowFeature = keyof RowGen;
 
 export class GridGen {
-  private rowGen: RowGen;
-  constructor(private size: number) {
-    this.rowGen = new RowGen(size);
+  private size: number
+  public rowGen: RowGen;
+  private features: RowFeature[]
+  constructor(rowGen: RowGen) {
+    this.rowGen = rowGen;
+    this.size = rowGen.emptyRow().length;
+    this.features = Object.keys(rowGen) as RowFeature[];
   }
 
   private materialize = (features: RowFeature[]) => {
     return features.map((feature) => this.rowGen[feature]());
   }
 
-  genAGrid = () => {
-    const features = Object.keys(this.rowGen) as RowFeature[];
+  genGrid = (features: RowFeature[] = this.features): Grid => {
     const rowFeatures = Array(this.size).fill(null).map(() => pickOne(features));
-    return {
-      features: Array.from(new Set(rowFeatures)),
-      grid: this.materialize(rowFeatures),
-    };
+    return this.materialize(rowFeatures)
   }
 
-  genFullMergeableGrid = () => {
+  genFullMergeableGrid = (): Grid => {
     const fullRowFeatures: RowFeature[] = [
-      'fourMergeable2Kinds',
-      'fourMergeableSameKind',
-      'threeMergeableAndDigit',
+      'fourMergeable2KindsRow',
+      'fourMergeableSameKindRow',
+      'threeMergeableAndDigitRow',
       'twoMergeableFullRow',
-      'fullUnmergeable',
+      'fullUnmergeableRow',
     ];
     const rowFeatures: RowFeature[] = Array(this.size).fill(null).map(() => pickOne(fullRowFeatures));
-    if (!rowFeatures.some(feature => feature !== 'fullUnmergeable')) {
-      rowFeatures[pickOne(range(0, rowFeatures.length))] = pickOne(fullRowFeatures.filter(f => f !== 'fullUnmergeable'));
+    if (!rowFeatures.some(feature => feature !== 'fullUnmergeableRow')) {
+      rowFeatures[pickOne(range(0, rowFeatures.length))] = (
+        pickOne(fullRowFeatures.filter(f => f !== 'fullUnmergeableRow'))
+      );
     }
-    return {
-      features: Array.from(new Set(rowFeatures)),
-      grid: this.materialize(rowFeatures),
-    };
+    return this.materialize(rowFeatures)
   }
 
-  genFullUnmergeableGrid = () => {
-    const grid = Array(this.size).fill(null).map(() => this.rowGen.fullUnmergeable());
+  genFullUnmergeableGrid = (): Grid => {
+    const grid = Array(this.size).fill(null).map(() => this.rowGen.fullUnmergeableRow());
     const verticalUnmergeableGrid = grid.map((row, rowIndex) => row.map((tile, colIndex) => {
       const tileAbove = grid[rowIndex - 1]?.[colIndex] ?? undefined;
       const tileBelow = grid[rowIndex + 1]?.[colIndex] ?? undefined;
@@ -152,9 +151,6 @@ export class GridGen {
       }
       return tile;
     }));
-    return {
-      features: [],
-      grid: verticalUnmergeableGrid,
-    }
+    return verticalUnmergeableGrid;
   }
 }
