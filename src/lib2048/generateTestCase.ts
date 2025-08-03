@@ -200,7 +200,7 @@ export class GridGen {
     return grid
   }
 
-  genMergeLeftBecomeUnmergeableGrid = (full: boolean): Grid => {
+  genMergeLeftBecomeUnmergeableGrid = (full: boolean, win: boolean): Grid => {
     // start with a full grid that is unmergeable
     const grid = this.genUnmergeableGrid()
 
@@ -210,11 +210,16 @@ export class GridGen {
     // so choose a random location
     // push all tiles on its right to the right (and rightmost tile is lost)
     const rowIndex = pickOne(range(0, this.size));
-    const colIndex = pickOne(range(0, this.size - 1));
+    const colIndex = pickOne(range(0, this.size - 1)); // gap at right most cannot merge left
     for (let j = this.size - 1; j > colIndex; j--) {
       grid[rowIndex][j] = grid[rowIndex][j - 1];
     }
     grid[rowIndex][colIndex] = null;
+
+    if(win) {
+      // make next step 2n will be 2048
+      grid[rowIndex][colIndex + 1] = 2048
+    }
 
     // optionally make the grid was originally full before the merge left
     // by splitting the tile on the new gap's right
@@ -299,17 +304,24 @@ export const generateTestCases = (gridGen: GridGen): TestCase[] => {
       }
       testCases.push({
         requestPayload: {
-          grid: transformOriginalGrid(gridGen.genMergeLeftBecomeUnmergeableGrid(false)),
+          grid: transformOriginalGrid(gridGen.genMergeLeftBecomeUnmergeableGrid(false, false)),
           mergeDirection: direction
         },
-        description: `genMergeLeftBecomeUnmergeableGrid false`
+        description: `genMergeLeftBecomeUnmergeableGrid full=false win=false`
       });
       testCases.push({
         requestPayload: {
-          grid: transformOriginalGrid(gridGen.genMergeLeftBecomeUnmergeableGrid(true)),
+          grid: transformOriginalGrid(gridGen.genMergeLeftBecomeUnmergeableGrid(true, false)),
           mergeDirection: direction
         },
-        description: `genMergeLeftBecomeUnmergeableGrid true`
+        description: `genMergeLeftBecomeUnmergeableGrid full=true win=false`
+      });
+      testCases.push({
+        requestPayload: {
+          grid: transformOriginalGrid(gridGen.genMergeLeftBecomeUnmergeableGrid(true, true)),
+          mergeDirection: direction
+        },
+        description: `genMergeLeftBecomeUnmergeableGrid full=true win=true`
       });
     }
   })

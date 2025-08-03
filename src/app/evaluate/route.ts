@@ -105,12 +105,20 @@ const evaluate = async (teamUrl: string) => {
   return testCaseResults
 }
 
-const rateBasicTestCaseResults = (testCaseResults: TestCaseResult[]): number => {
+const rateBasicTestCaseResults = (testCaseResults: TestCaseResult[]): {score: number, rate: Record<string, number>} => {
   const totalTestCases = testCaseResults.length
   const mergeCorrectRate = testCaseResults.filter(({ correct }) => correct?.merge).length / totalTestCases
   const newTileCorrectRate = testCaseResults.filter(({ correct }) => correct?.newTile).length / totalTestCases
   const endGameCorrectRate = testCaseResults.filter(({ correct }) => correct?.endGame).length / totalTestCases
-  return 0.5 * mergeCorrectRate + 0.1 * newTileCorrectRate + 0.4 * endGameCorrectRate
+  const score = 0.5 * mergeCorrectRate + 0.1 * newTileCorrectRate + 0.4 * endGameCorrectRate
+  return {
+    score,
+    rate: {
+      mergeCorrectRate,
+      newTileCorrectRate,
+      endGameCorrectRate,
+    }
+  }
 }
 
 const commentBasicTestCaseResults = (testCaseResults: TestCaseResult[]): string => {
@@ -128,16 +136,16 @@ export async function POST(req: Request) {
   const teamUrl = rawTeamUrl.replace(/\/$/, '')
 
   const testCaseResults = await evaluate(teamUrl)
-  const score = rateBasicTestCaseResults(testCaseResults)
+  const {score, rate} = rateBasicTestCaseResults(testCaseResults)
   const message = commentBasicTestCaseResults(testCaseResults)
 
-  const payload: ICallbackRequest = {
+  const callbackPayload: ICallbackRequest = {
     score: Math.ceil(score * 100),
     runId,
     message
   }
-  console.log('responding evaluation request', payload)
-  await axios.post(callbackUrl, payload, { headers: { Authorization: config.COORDINATOR_TOKEN } })
+  console.info({action: 'responding evaluation request', runId, callbackPayload, testCaseResults, rate})
+  await axios.post(callbackUrl, callbackPayload, { headers: { Authorization: config.COORDINATOR_TOKEN } })
   return NextResponse.json({ result: 'ok' })
 }
 

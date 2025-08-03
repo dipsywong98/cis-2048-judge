@@ -1,4 +1,4 @@
-import { detectEndgame, generateNewTile, LOSE, mergeGridLeft } from "./game";
+import { detectEndgame, generateNewTile, LOSE, mergeGridLeft, WIN } from "./game";
 import { GridGen, RowGen } from "./generateTestCase";
 
 const rowGen = new RowGen(4);
@@ -86,7 +86,7 @@ describe('GridGen', () => {
     describe('full is false', () => {
       Array(100).fill(null).forEach((_, idx) => {
         it(`${idx} should generate a grid with empty that becomes unmergeable after a left merge`, () => {
-          const grid = gridGen.genMergeLeftBecomeUnmergeableGrid(false);
+          const grid = gridGen.genMergeLeftBecomeUnmergeableGrid(false, false);
           expect(grid.length).toBe(4);
           grid.forEach(row => {
             expect(row.length).toBe(4);
@@ -100,10 +100,10 @@ describe('GridGen', () => {
         });
       })
     })
-    describe('full is true', () => {
+    describe('full is true win is false', () => {
       Array(100).fill(null).forEach((_, idx) => {
         it(`${idx} should generate a grid without empty that becomes unmergeable after a left merge`, () => {
-          const grid = gridGen.genMergeLeftBecomeUnmergeableGrid(true);
+          const grid = gridGen.genMergeLeftBecomeUnmergeableGrid(true, false);
           expect(grid.length).toBe(4);
           grid.forEach(row => {
             expect(row.length).toBe(4);
@@ -114,6 +114,24 @@ describe('GridGen', () => {
             console.log(grid, mergedGrid)
           }
           expect(result).toBe(LOSE);
+        });
+      })
+    })
+
+    describe('full is true win is true', () => {
+      Array(100).fill(null).forEach((_, idx) => {
+        it(`${idx} should generate a grid without empty that becomes unmergeable after a left merge but is winning`, () => {
+          const grid = gridGen.genMergeLeftBecomeUnmergeableGrid(true, true);
+          expect(grid.length).toBe(4);
+          grid.forEach(row => {
+            expect(row.length).toBe(4);
+          });
+          const mergedGrid = mergeGridLeft(grid);
+          const result = detectEndgame(generateNewTile(mergedGrid))
+          if (result !== WIN) {
+            console.log(grid, mergedGrid)
+          }
+          expect(result).toBe(WIN);
         });
       })
     })
