@@ -97,3 +97,24 @@ export const detectEndgame = (grid: Tile[][]): EndGameStatus => {
   }
   return LOSE;
 };
+
+export const mergeWithDirection = (grid: Grid, mergeDirection: Direction): Grid => {
+  let mergedGrid: Grid;
+  switch (mergeDirection) {
+    case Direction.UP:
+      mergedGrid = mergeGridUp(grid);
+      break;
+    case Direction.DOWN:
+      mergedGrid = mergeGridDown(grid);
+      break;
+    case Direction.LEFT:
+      mergedGrid = mergeGridLeft(grid);
+      break;
+    case Direction.RIGHT:
+      mergedGrid = mergeGridRight(grid);
+      break;
+    default:
+      throw new Error(`Unknown merge direction: ${mergeDirection}`);
+  }
+  return mergedGrid;
+}

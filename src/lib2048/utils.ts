@@ -56,3 +56,7 @@ export const batch = <T>(array: T[], size: number): T[][] => {
   }
   return result;
 }
+
+export const isSameGrid = (left: Tile[][], right: Tile[][]): boolean => {
+  return JSON.stringify(left) === JSON.stringify(right);
+}

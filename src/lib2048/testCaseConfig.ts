@@ -1,7 +1,7 @@
 // this file might not be needed
 import { detectEndgame, EndGameStatus, Grid, mergeGridDown, mergeGridLeft, mergeGridRight, mergeGridUp, Tile } from "./game";
 import { GridGen, RowFeature, RowGen } from "./generateTestCase";
-import { transpose, zip } from "./utils";
+import { isSameGrid, transpose, zip } from "./utils";
 
 enum RequirementBatch {
   BASIC = 1,
@@ -40,10 +40,6 @@ const createGridForEachFeature = (gridGen: GridGen): Grid[] => {
 }
 
 const basicGridGen = new GridGen(new RowGen(4));
-
-const isSameGrid = (left: Tile[][], right: Tile[][]): boolean => {
-  return JSON.stringify(left) === JSON.stringify(right);
-}
 
 const evaluateGridPairs = (fullScore: number, calculateExpectedGrid: (original: Grid) => Grid) => (originalGrids: Grid[], actualGrids: Grid[]): TestCaseResult => {
   if (originalGrids.length !== actualGrids.length) {

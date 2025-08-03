@@ -121,22 +121,32 @@ export class RowGen {
   }
 }
 
-export type RowFeature = keyof RowGen;
+const basicRowFeatures = [
+  'almostWinRow',
+  'cascadingMergeableRow',
+  'emptyRow',
+  'fourMergeable2KindsRow',
+  'fourMergeableSameKindRow',
+  'fullUnmergeableRow',
+  'singleDigitRow',
+  'threeMergeableAndDigitRow',
+  'threeMergeableAndSpaceRow',
+  'twoMergeableAndSpaceRow',
+  'twoMergeableFullRow',
+  'twoMergeableWithGapRow',
+] as const satisfies Array<keyof RowGen>
 
-interface GridGenResult {
-  rowFeatures: RowFeature[];
-  grid: Grid;
-}
+export type RowFeature = keyof RowGen;
 
 export class GridGen {
   private size: number
   public rowGen: RowGen;
-  private features: RowFeature[]
+  public features: RowFeature[]
   private fullRowFeatures: RowFeature[];
   constructor(rowGen: RowGen) {
     this.rowGen = rowGen;
     this.size = rowGen.emptyRow().length;
-    this.features = Object.keys(rowGen) as RowFeature[];
+    this.features = basicRowFeatures;
 
     this.fullRowFeatures = [
       'fourMergeable2KindsRow',
@@ -150,7 +160,12 @@ export class GridGen {
   }
 
   private materialize = (features: RowFeature[]) => {
-    return features.map((feature) => this.rowGen[feature]());
+    return features.map((feature) => {
+      if (typeof this.rowGen[feature] !== 'function') {
+        throw new Error(`${feature} is not a feature in rowGen ${this.rowGen}`)
+      }
+      return this.rowGen[feature]()
+    });
   }
 
   genGrid = (features: RowFeature[] = this.features): Grid => {
@@ -235,8 +250,9 @@ export class GridGen {
   }
 }
 
-interface EvaluationRequest {
-  opPayload: GridOpPayload
+export interface TestCase {
+  id: number
+  requestPayload: GridOpPayload
   description: string
 }
 
@@ -248,23 +264,23 @@ const directionTransformations = {
   [Direction.DOWN]: (grid) => transpose(mirror(grid)),
 } satisfies Record<typeof Direction[keyof typeof Direction], (grid: Grid) => Grid>;
 
-export const generateTestCases = (gridGen: GridGen) => {
-  const requests: EvaluationRequest[] = [];
+export const generateTestCases = (gridGen: GridGen): TestCase[] => {
+  const testCases: Array<Omit<TestCase, 'id'>> = [];
   Object.entries(directionTransformations).forEach(([direction, transformOriginalGrid]) => {
-    requests.push({
-      opPayload: {
+    testCases.push({
+      requestPayload: {
         grid: transformOriginalGrid(gridGen.genGrid(['emptyRow'])),
         mergeDirection: direction
       },
       description: 'Full empty'
     });
     for (let j = 0; j < 3; j++) {
-      const features = shuffle(Object.keys(gridGen.rowGen) as RowFeature[]);
+      const features = shuffle(gridGen.features);
       for (let i = 0; i < features.length; i += 4) {
         const featureSet = features.slice(i, i + 4);
         const grid = transformOriginalGrid(gridGen.genGrid(featureSet));
-        requests.push({
-          opPayload: {
+        testCases.push({
+          requestPayload: {
             grid,
             mergeDirection: direction
           },
@@ -273,23 +289,23 @@ export const generateTestCases = (gridGen: GridGen) => {
       }
       {
         const { grid, rowFeatures } = gridGen.genFullMergeableGrid()
-        requests.push({
-          opPayload: {
+        testCases.push({
+          requestPayload: {
             grid: transformOriginalGrid(grid),
             mergeDirection: direction
           },
           description: `genFullMergeableGrid ${rowFeatures.join()}`
         })
       }
-      requests.push({
-        opPayload: {
+      testCases.push({
+        requestPayload: {
           grid: transformOriginalGrid(gridGen.genMergeLeftBecomeUnmergeableGrid(false)),
           mergeDirection: direction
         },
         description: `genMergeLeftBecomeUnmergeableGrid false`
       });
-      requests.push({
-        opPayload: {
+      testCases.push({
+        requestPayload: {
           grid: transformOriginalGrid(gridGen.genMergeLeftBecomeUnmergeableGrid(true)),
           mergeDirection: direction
         },
@@ -298,5 +314,5 @@ export const generateTestCases = (gridGen: GridGen) => {
     }
   })
 
-  return requests;
+  return shuffle(testCases).map((tc, id) => ({...tc, id}));
 }
