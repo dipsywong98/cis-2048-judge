@@ -61,8 +61,14 @@ export const isSameGrid = (left: Tile[][], right: Tile[][]): boolean => {
   return JSON.stringify(left) === JSON.stringify(right);
 }
 
-export const genDigit = (exclude: number[] = []): number => {
-  const digits = [2, 4, 8, 16, 32, 64, 128, 256, 512, 1024];
+export function genDigit(): number;
+export function genDigit(exclude: number[]): number;
+export function genDigit(exclude: Tile[]): Tile;
+export function genDigit(exclude: number[], extra: number[]): number;
+export function genDigit(exclude: Tile[], extra: Tile[]): Tile;
+
+export function genDigit (exclude: Tile[] = [], extra: Tile[] = []): Tile {
+  const digits = [2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, ...extra];
   const filtered = digits.filter(d => !exclude.includes(d));
   return filtered[Math.floor(Math.random() * filtered.length)];
 };

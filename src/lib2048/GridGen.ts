@@ -2,7 +2,7 @@ import { Direction, Grid, Tile } from "./game";
 import { genDigit, mirror, pickOne, range, shuffle, transpose } from "./utils";
 import { BasicRowGen } from "./RowGen/BasicRowGen";
 
-type RowFeature = BasicRowGen['features'][number]
+type RowFeature<RowGen extends BasicRowGen> = keyof RowGen
 
 export class GridGen<RowGen extends BasicRowGen> {
   private size: number
@@ -12,23 +12,25 @@ export class GridGen<RowGen extends BasicRowGen> {
     this.size = rowGen.emptyRow().length;
   }
 
-  private materialize = (features: RowFeature[]) => {
+  private materialize = (features: RowFeature<RowGen>[]) => {
     return features.map((feature) => {
       if (typeof this.rowGen[feature] !== 'function') {
-        throw new Error(`${feature} is not a feature in rowGen ${this.rowGen}`)
+        throw new Error(`${String(feature)} is not a feature in rowGen ${this.rowGen}`)
       }
       return this.rowGen[feature]()
     });
   }
 
-  genGrid = (features: RowFeature[]): Grid => {
+  genGrid = (features: RowFeature<RowGen>[]): Grid => {
     const rowFeatures = Array(this.size).fill(null).map(() => pickOne(features));
     return this.materialize(rowFeatures)
   }
 
-  genFullMergeableGrid = (features?: RowFeature[]): { rowFeatures: RowFeature[], grid: Grid } => {
-    const chosenFullRowFeatures: RowFeature[] = features?.filter(feature => this.rowGen.fullRowFeatures.includes(feature)) ?? this.rowGen.fullRowFeatures ;
-    const rowFeatures: RowFeature[] = Array(this.size).fill(null).map(() => pickOne(chosenFullRowFeatures));
+  genFullMergeableGrid = (features?: RowFeature<RowGen>[]): { rowFeatures: RowFeature<RowGen>[], grid: Grid } => {
+    const chosenFullRowFeatures: RowFeature<RowGen>[] = features
+      ?.filter(feature => (this.rowGen.fullRowFeatures as RowFeature<RowGen>[]).includes(feature))
+      ?? this.rowGen.fullRowFeatures;
+    const rowFeatures: RowFeature<RowGen>[] = Array(this.size).fill(null).map(() => pickOne(chosenFullRowFeatures));
     if (!rowFeatures.some(feature => feature !== 'fullUnmergeableRow')) {
       rowFeatures[pickOne(range(0, rowFeatures.length))] = (
         pickOne(chosenFullRowFeatures.filter(f => f !== 'fullUnmergeableRow'))
@@ -40,14 +42,14 @@ export class GridGen<RowGen extends BasicRowGen> {
     }
   }
 
-  private genUnmergeableGrid = (): Grid => {
+  private genNoSameNeighborGrid = (): Grid => {
     const grid = this.materialize(Array(this.size).fill('emptyRow'));
     for (let rowIndex = 0; rowIndex < this.size; rowIndex++) {
       for (let colIndex = 0; colIndex < this.size; colIndex++) {
         const tileAbove = grid[rowIndex - 1]?.[colIndex] ?? 0;
         const tileLeft = grid[rowIndex]?.[colIndex - 1] ?? 0;
         // exclude 2, 4 so new tile will not be mergeable
-        grid[rowIndex][colIndex] = genDigit([2, 4, tileAbove, tileLeft])
+        grid[rowIndex][colIndex] = genDigit([2, 4, tileAbove, tileLeft], this.rowGen.specialTiles)
       }
     }
     return grid
@@ -55,7 +57,7 @@ export class GridGen<RowGen extends BasicRowGen> {
 
   genMergeLeftBecomeUnmergeableGrid = (full: boolean, win: boolean): Grid => {
     // start with a full grid that is unmergeable
-    const grid = this.genUnmergeableGrid()
+    const grid = this.genNoSameNeighborGrid()
 
     // then create a gap
     // after merge left, gap must appears at the right most

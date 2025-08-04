@@ -3,8 +3,8 @@ import { genDigit, mirror, pickOne, range, shuffle, transpose } from "../utils";
 
 // features are left-right symmetry
 export class BasicRowGen {
-  private length: number;
-  features = [
+  protected length: number;
+  protected static features = [
     'almostWinRow',
     'cascadingMergeableRow',
     'emptyRow',
@@ -17,8 +17,8 @@ export class BasicRowGen {
     'twoMergeableAndSpaceRow',
     'twoMergeableFullRow',
     'twoMergeableWithGapRow',
-  ] as const satisfies Array<keyof BasicRowGen>
-  fullRowFeatures: Array<BasicRowGen['features'][number]> = [
+  ] satisfies Array<keyof BasicRowGen>
+  protected static fullRowFeatures: Array<typeof BasicRowGen.features[number]> = [
     'fourMergeable2KindsRow',
     'fourMergeableSameKindRow',
     'threeMergeableAndDigitRow',
@@ -26,17 +26,24 @@ export class BasicRowGen {
     'fullUnmergeableRow',
     'cascadingMergeableRow',
     'almostWinRow',
-  ] as const
+  ]
+  specialTiles: Tile[] = []
   constructor(length = 4) {
     this.length = length;
+  }
+  get features(): Array<keyof typeof this> {
+    return BasicRowGen.features
+  }
+  get fullRowFeatures(): Array<keyof typeof this>{
+    return BasicRowGen.fullRowFeatures
   }
   emptyRow = (): Tile[] => {
     return Array(this.length).fill(null);
   };
 
-  fullUnmergeableRow = (initialExcludeDigits: number[] = []): Tile[] => {
+  fullUnmergeableRow = (): Tile[] => {
     const row = this.emptyRow();
-    const excludeDigits = [...initialExcludeDigits];
+    const excludeDigits: Tile[] = [];
     for (let i = 0; i < row.length; i++) {
       const digit = genDigit(excludeDigits);
       row[i] = digit;
