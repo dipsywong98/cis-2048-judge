@@ -10,7 +10,35 @@ export const Direction = {
 }
 export type Direction = typeof Direction[keyof typeof Direction];
 
+const splitArrayOnElement = <T>(array: T[], element: T): T[][] => {
+  const result: T[][] = [];
+  let current: T[] = [];
+  for (const item of array) {
+    if (item === element) {
+      result.push(current);
+      current = [];
+    } else {
+      current.push(item);
+    }
+  }
+  result.push(current);
+  return result;
+}
+
+const joinArrayWithElement = <T>(arrays: T[][], element: T): T[] => {
+  return arrays.reduce((acc, arr, idx) => {
+    if (idx > 0) acc.push(element);
+    acc.push(...arr);
+    return acc;
+  }, [] as T[]);
+}
+
 export const mergeRowLeft = (row: Tile[]): Tile[] => {
+  const segments = splitArrayOnElement(row, '0')
+  if (segments.length > 1) {
+    const mergedSegments = segments.map(mergeRowLeft)
+    return joinArrayWithElement(mergedSegments, '0')
+  }
   const nonZeroTiles = row.filter(tile => tile !== null);
   const mergedRow: Tile[] = [];
   while (nonZeroTiles.length > 0) {

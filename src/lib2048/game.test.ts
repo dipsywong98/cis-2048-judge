@@ -491,3 +491,41 @@ describe('2048 Game Logic', () => {
 function createEmptyRow(): (Tile)[] {
   return [null, null, null, null];
 }
+
+describe('advanced 2048 game logic', () => {
+  describe('merge row left', () => {
+    it('can merge longer rows', () => {
+      const row = [null, 2, null, 4, null, 8];
+      expect(mergeRowLeft(row)).toEqual([2, 4, 8, null, null, null]);
+    })
+
+    describe('0', () => {
+      it('doesnt move', () => {
+        expect(mergeRowLeft([null, 2, '0', 4, null, 8, '0', null, 16]))
+        .toEqual([2, null, '0', 4, 8, null, '0', 16, null]);
+      })
+
+      it('doesnt merge', () => {
+        expect(mergeRowLeft([null, '0', '0', 2]))
+        .toEqual([null, '0', '0', 2])
+      })
+    })
+
+    describe('*2', () => {
+      it('merge with any number to its left', () => {
+        expect(mergeRowLeft([null, 2, '*2', 4, null, 8, '*2', null, 16]))
+          .toEqual([4, 4, 16, 16, null, null, null, null, null]);
+      })
+
+      it('doesnt merge with itself', () => {
+        expect(mergeRowLeft([null, '*2', '*2', null]))
+          .toEqual(['*2', '*2', null, null]);
+      })
+
+      it('doesnt merge with its right', () => {
+        expect(mergeRowLeft([null, '*2', 4, null]))
+          .toEqual(['*2', 4, null, null]);
+      })
+    })
+  })
+})

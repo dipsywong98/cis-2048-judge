@@ -33,7 +33,7 @@ export const requirements = {
     fullScore: 20,
   },
   [RequirementType.ALL]: {
-    gridGen: new GridGen(new AdvanceRowGen(['0', '1', '*2'], 6)),
+    gridGen: new GridGen(new AdvanceRowGen(['0', '1', '*2'], 10)),
     fullScore: 20,
   }
 } as const satisfies Record<RequirementType, Requirement<string>>

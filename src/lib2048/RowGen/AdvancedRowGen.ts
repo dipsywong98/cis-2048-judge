@@ -42,6 +42,8 @@ export class AdvanceRowGen implements RowGen<AdvanceRowFeature> {
         return this.twoSpecialWithoutSpaceBetweenRow();
       case 'fullOfSpecial':
         return this.fullOfSpecial();
+      case 'twoSpecialWithSomeSpaceBetweenRow':
+        return this.twoSpecialWithSomeSpaceBetweenRow()
       default:
         throw new Error(`Unknown feature: ${feature}`);
     }
@@ -81,6 +83,20 @@ export class AdvanceRowGen implements RowGen<AdvanceRowFeature> {
     row[block2Index] = 0
     for(let i = block1Index + 1; i < block2Index; i++) {
       row[i] = null
+    }
+    return row
+  }
+
+  private twoSpecialWithSomeSpaceBetweenRow = (): Tile[] => {
+    const row = this.basicRow()
+    const block1Index = pickOne(range(0, row.length / 2))
+    const block2Index = pickOne(range(row.length / 2, row.length))
+    row[block1Index] = 0
+    row[block2Index] = 0
+    for(let i = block1Index + 1; i < block2Index; i++) {
+      if (Math.random() < 0.5) {
+        row[i] = null
+      }
     }
     return row
   }
