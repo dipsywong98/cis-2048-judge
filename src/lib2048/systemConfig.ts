@@ -35,7 +35,7 @@ const config = {
   APP_URL: env('APP_URL', `https://${env('VERCEL_URL', 'localhost:3000')}`),
   COORDINATOR_TOKEN: env('COORDINATOR_TOKEN', ''),
   ENABLE_FAKE_STUDENT: env('ENABLE_FAKE_STUDENT', false),
-  GRADE_TIMEOUT_SECOND: env('GRADE_TIMEOUT_SECOND', 30),
+  GRADE_TIMEOUT_SECOND: env('GRADE_TIMEOUT_SECOND', 5),
   APP_VERSION: version,
   FAQ: env('FAQ', [])
 };

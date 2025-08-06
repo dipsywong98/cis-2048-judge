@@ -8,6 +8,8 @@ import * as z from "zod";
 import { GridOpResponse, GridOpResponseSchema } from "./model";
 import { GridGen } from "./GridGen";
 import { BasicRowGen } from "./RowGen/BasicRowGen";
+import { requirements } from "./requirementsConfig";
+import { AdvanceRowGen } from "./RowGen/AdvancedRowGen";
 
 export interface TestCaseResult {
   testCase: TestCase
@@ -23,7 +25,59 @@ export interface TestCaseResult {
 
 
 export const evaluate = async (teamUrl: string) => {
-  const gridGen = new GridGen(new BasicRowGen(4))
+  const allWeightedScores: Record<string, number> = {}
+  const allScores: Record<string, number> = {}
+  const allMessages: Record<string, string> = {}
+  const allRates: Record<string, unknown> = {}
+  const allTestResults: Record<string, TestCaseResult[]> = {}
+  for (const [requirementName, {gridGen, fullScore}] of Object.entries(requirements)) {
+    const testCaseResults = await evaluateForGridGen(teamUrl, gridGen)
+    const { score, rate } = rateBasicTestCaseResults(testCaseResults)
+    const message = commentBasicTestCaseResults(testCaseResults)
+    const weightedScore = score * fullScore
+
+    allWeightedScores[requirementName] = weightedScore
+    allScores[requirementName] = score
+    allMessages[requirementName] = message
+    allRates[requirementName] = rate
+    allTestResults[requirementName] = testCaseResults
+    if (requirementName === 'basic') {
+      if (score < 1) {
+        break
+      }
+    }
+  }
+
+  return {
+    allWeightedScores,
+    allMessages,
+    allRates,
+    allTestResults,
+  }
+}
+
+
+const rateBasicTestCaseResults = (testCaseResults: TestCaseResult[]): {score: number, rate: Record<string, number>} => {
+  const totalTestCases = testCaseResults.length
+  const mergeCorrectRate = testCaseResults.filter(({ correct }) => correct?.merge).length / totalTestCases
+  const newTileCorrectRate = testCaseResults.filter(({ correct }) => correct?.newTile).length / totalTestCases
+  const endGameCorrectRate = testCaseResults.filter(({ correct }) => correct?.endGame).length / totalTestCases
+  const score = 0.5 * mergeCorrectRate + 0.1 * newTileCorrectRate + 0.4 * endGameCorrectRate
+  return {
+    score,
+    rate: {
+      mergeCorrectRate,
+      newTileCorrectRate,
+      endGameCorrectRate,
+    }
+  }
+}
+
+const commentBasicTestCaseResults = (testCaseResults: TestCaseResult[]): string => {
+  return testCaseResults.map((t) => t.message).join(';')
+}
+
+export const evaluateForGridGen = async <RowFeature extends string>(teamUrl: string, gridGen: GridGen<RowFeature>) => {
   const testCases = generateTestCases(gridGen)
   const testCaseResults: TestCaseResult[] = []
 

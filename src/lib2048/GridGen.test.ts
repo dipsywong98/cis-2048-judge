@@ -13,7 +13,7 @@ describe('GridGen', () => {
       grid.forEach(row => {
         expect(row.length).toBe(4);
       });
-      expect(detectEndgame(grid)).toBe(false);
+      expect(detectEndgame(grid)).toBe(null);
     });
   });
 
@@ -46,7 +46,7 @@ describe('GridGen', () => {
           const mergedGrid = mergeGridLeft(grid);
           const result = detectEndgame(generateNewTile(mergedGrid))
           if (result !== LOSE) {
-            console.log(grid, mergedGrid)
+            console.log('expect lose', grid, mergedGrid)
           }
           expect(result).toBe(LOSE);
         });
@@ -64,7 +64,7 @@ describe('GridGen', () => {
           const mergedGrid = mergeGridLeft(grid);
           const result = detectEndgame(generateNewTile(mergedGrid))
           if (result !== WIN) {
-            console.log(grid, mergedGrid)
+            console.log('expect WIN', grid, mergedGrid)
           }
           expect(result).toBe(WIN);
         });

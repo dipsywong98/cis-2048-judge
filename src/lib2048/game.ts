@@ -1,6 +1,6 @@
 import { transpose } from "./utils";
 
-export type Tile = number | null;
+export type Tile = number | null | '*2' | '0' | '1';
 export type Grid = Tile[][];
 export const Direction = {
   UP: 'UP',
@@ -15,10 +15,14 @@ export const mergeRowLeft = (row: Tile[]): Tile[] => {
   const mergedRow: Tile[] = [];
   while (nonZeroTiles.length > 0) {
     const firstTile = nonZeroTiles.shift()!;
-    if (firstTile === nonZeroTiles[0]) {
+    if (firstTile === '*2' || firstTile === '0' || firstTile === '1') {
+      mergedRow.push(firstTile);
+    }
+    else if (firstTile === nonZeroTiles[0] || nonZeroTiles[0] === '*2') {
       mergedRow.push(firstTile * 2);
       nonZeroTiles.shift(); // Remove the merged tile
-    } else {
+    }
+    else {
       mergedRow.push(firstTile);
     }
   }

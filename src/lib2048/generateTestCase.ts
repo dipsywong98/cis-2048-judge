@@ -3,6 +3,7 @@ import { mirror, pickOne, range, shuffle, transpose } from "./utils";
 import { GridGen } from "./GridGen";
 import { BasicRowGen } from "./RowGen/BasicRowGen";
 import { GridOpPayload } from "./model";
+import { AdvanceRowGen } from "./RowGen/AdvancedRowGen";
 
 
 export interface TestCase {
@@ -19,16 +20,9 @@ const directionTransformations = {
   [Direction.DOWN]: (grid) => transpose(mirror(grid)),
 } satisfies Record<typeof Direction[keyof typeof Direction], (grid: Grid) => Grid>;
 
-export const generateTestCases = <RowGen extends BasicRowGen>(gridGen: GridGen<RowGen>): TestCase[] => {
+export const generateTestCases = <RowFeature extends string>(gridGen: GridGen<RowFeature>): TestCase[] => {
   const testCases: Array<Omit<TestCase, 'id'>> = [];
   Object.entries(directionTransformations).forEach(([direction, transformOriginalGrid]) => {
-    testCases.push({
-      requestPayload: {
-        grid: transformOriginalGrid(gridGen.genGrid(['emptyRow'])),
-        mergeDirection: direction
-      },
-      description: 'Full empty'
-    });
     for (let j = 0; j < 3; j++) {
       const features = shuffle(gridGen.rowGen.features);
       for (let i = 0; i < features.length; i += 4) {

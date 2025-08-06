@@ -1,47 +1,63 @@
 import { Tile } from "../game";
 import { pickOne, range } from "../utils";
 import { BasicRowGen } from "./BasicRowGen";
+import { RowGen } from "./RowGen";
 
-export class AdvanceRowGen extends BasicRowGen {
-  /**
-   * dont use these static members
-   */
-  protected static features = []
-  protected static fullRowFeatures = [];
+const advanceRowFeatures = [
+  'basicRow',
+  'fullRow',
+  'specialWithSpaceRow',
+  'twoSpecialWithSpaceBetweenRow',
+  'twoSpecialWithoutSpaceBetweenRow',
+  'fullOfSpecial',
+]
+
+type AdvanceRowFeature = typeof advanceRowFeatures[number]
+
+export class AdvanceRowGen implements RowGen<AdvanceRowFeature> {
+  length: number
+  features = advanceRowFeatures
+  fullRowFeatures = [
+    'fullRow', 'fullOfSpecial'
+  ] satisfies Array<typeof this.features[number]>;
   specialTiles: Tile[]
+  private basicRowGen: BasicRowGen
   constructor(specialTiles: Tile[], length = 4) {
-    super(length)
+    this.length = length
     this.specialTiles = specialTiles
+    this.basicRowGen = new BasicRowGen(length)
   }
 
-  get features(): Array<keyof typeof this> {
-    return [
-      'basicRow',
-      'fullRow',
-      'specialWithSpaceRow',
-      'twoSpecialWithSpaceBetweenRow',
-      'twoSpecialWithoutSpaceBetweenRow',
-      'fullOfSpecial',
-    ]
+  renderRow = (feature: AdvanceRowFeature): Tile[] => {
+    switch(feature){
+      case 'basicRow':
+        return this.basicRow();
+      case 'fullRow':
+        return this.fullRow();
+      case 'specialWithSpaceRow':
+        return this.specialWithSpaceRow();
+      case 'twoSpecialWithSpaceBetweenRow':
+        return this.twoSpecialWithSpaceBetweenRow();
+      case 'twoSpecialWithoutSpaceBetweenRow':
+        return this.twoSpecialWithoutSpaceBetweenRow();
+      case 'fullOfSpecial':
+        return this.fullOfSpecial();
+      default:
+        throw new Error(`Unknown feature: ${feature}`);
+    }
   }
 
-  get fullRowFeatures(): Array<keyof typeof this> {
-    return [
-      'fullRow', 'fullOfSpecial'
-    ]
+  private basicRow = (): Tile[] => {
+    return this.basicRowGen.renderRow(pickOne(this.basicRowGen.features))
   }
 
-  basicRow = (): Tile[] => {
-    return this[pickOne(BasicRowGen.features)]()
-  }
-
-  fullRow = (): Tile[] => {
-    const row = this[pickOne(BasicRowGen.features)]()
+  private fullRow = (): Tile[] => {
+    const row = this.basicRow()
     row[pickOne(range(0, row.length))] = pickOne(this.specialTiles)
     return row
   }
 
-  specialWithSpaceRow = () => {
+  private specialWithSpaceRow = (): Tile[] => {
     const row = this.basicRow()
     const spaceIndex = pickOne(range(0, row.length - 1))
     row[spaceIndex] = null
@@ -49,7 +65,7 @@ export class AdvanceRowGen extends BasicRowGen {
     return row
   }
 
-  twoSpecialWithoutSpaceBetweenRow = () => {
+  private twoSpecialWithoutSpaceBetweenRow = (): Tile[] => {
     const row = this.basicRow()
     const index = pickOne(range(0, row.length - 1))
     row[index] = 0
@@ -57,7 +73,7 @@ export class AdvanceRowGen extends BasicRowGen {
     return row
   }
 
-  twoSpecialWithSpaceBetweenRow = () => {
+  private twoSpecialWithSpaceBetweenRow = (): Tile[] => {
     const row = this.basicRow()
     const block1Index = pickOne(range(0, row.length / 2))
     const block2Index = pickOne(range(row.length / 2, row.length))
@@ -69,7 +85,7 @@ export class AdvanceRowGen extends BasicRowGen {
     return row
   }
 
-  fullOfSpecial = () => {
+  private fullOfSpecial = (): Tile[] => {
     return Array(this.length).fill(0).map(() => pickOne(this.specialTiles))
   }
 }

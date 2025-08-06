@@ -8,7 +8,7 @@ export interface GridOpPayload {
 }
 
 export const GridOpResponseSchema = z.object({
-  nextGrid: z.array(z.array(z.nullable(z.number()))),
+  nextGrid: z.array(z.array(z.nullable(z.union([z.number(), z.string()])))),
   endGame: z.nullable(z.enum([WIN, LOSE]))
 });
 

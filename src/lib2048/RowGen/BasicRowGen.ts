@@ -1,24 +1,29 @@
 import { Direction, Grid, Tile } from "../game";
 import { genDigit, mirror, pickOne, range, shuffle, transpose } from "../utils";
+import { RowGen } from "./RowGen";
+
+const basicRowFeatures = [
+  'almostWinRow',
+  'cascadingMergeableRow',
+  'emptyRow',
+  'fourMergeable2KindsRow',
+  'fourMergeableSameKindRow',
+  'fullUnmergeableRow',
+  'singleDigitRow',
+  'threeMergeableAndDigitRow',
+  'threeMergeableAndSpaceRow',
+  'twoMergeableAndSpaceRow',
+  'twoMergeableFullRow',
+  'twoMergeableWithGapRow',
+]
+
+type BasicFeatures = typeof basicRowFeatures[number]
 
 // features are left-right symmetry
-export class BasicRowGen {
-  protected length: number;
-  protected static features = [
-    'almostWinRow',
-    'cascadingMergeableRow',
-    'emptyRow',
-    'fourMergeable2KindsRow',
-    'fourMergeableSameKindRow',
-    'fullUnmergeableRow',
-    'singleDigitRow',
-    'threeMergeableAndDigitRow',
-    'threeMergeableAndSpaceRow',
-    'twoMergeableAndSpaceRow',
-    'twoMergeableFullRow',
-    'twoMergeableWithGapRow',
-  ] satisfies Array<keyof BasicRowGen>
-  protected static fullRowFeatures: Array<typeof BasicRowGen.features[number]> = [
+export class BasicRowGen implements RowGen<BasicFeatures> {
+  length: number;
+  features = basicRowFeatures
+  fullRowFeatures = [
     'fourMergeable2KindsRow',
     'fourMergeableSameKindRow',
     'threeMergeableAndDigitRow',
@@ -26,22 +31,46 @@ export class BasicRowGen {
     'fullUnmergeableRow',
     'cascadingMergeableRow',
     'almostWinRow',
-  ]
+  ] satisfies Array<typeof this.features[number]>
   specialTiles: Tile[] = []
   constructor(length = 4) {
     this.length = length;
   }
-  get features(): Array<keyof typeof this> {
-    return BasicRowGen.features
+  renderRow = (feature: BasicFeatures) => {
+    switch(feature) {
+      case 'emptyRow':
+        return this.emptyRow();
+      case 'fullUnmergeableRow':
+        return this.fullUnmergeableRow();
+      case 'singleDigitRow':
+        return this.singleDigitRow();
+      case 'twoMergeableFullRow':
+        return this.twoMergeableFullRow();
+      case 'twoMergeableWithGapRow':
+        return this.twoMergeableWithGapRow();
+      case 'twoMergeableAndSpaceRow':
+        return this.twoMergeableAndSpaceRow();
+      case 'threeMergeableAndSpaceRow':
+        return this.threeMergeableAndSpaceRow();
+      case 'threeMergeableAndDigitRow':
+        return this.threeMergeableAndDigitRow();
+      case 'fourMergeable2KindsRow':
+        return this.fourMergeable2KindsRow();
+      case 'fourMergeableSameKindRow':
+        return this.fourMergeableSameKindRow();
+      case 'cascadingMergeableRow':
+        return this.cascadingMergeableRow();
+      case 'almostWinRow':
+        return this.almostWinRow();
+      default:
+        throw new Error(`Unknown feature: ${feature}`);
+    }
   }
-  get fullRowFeatures(): Array<keyof typeof this>{
-    return BasicRowGen.fullRowFeatures
-  }
-  emptyRow = (): Tile[] => {
+  private emptyRow = (): Tile[] => {
     return Array(this.length).fill(null);
   };
 
-  fullUnmergeableRow = (): Tile[] => {
+  private fullUnmergeableRow = (): Tile[] => {
     const row = this.emptyRow();
     const excludeDigits: Tile[] = [];
     for (let i = 0; i < row.length; i++) {
@@ -52,13 +81,13 @@ export class BasicRowGen {
     return row;
   };
 
-  singleDigitRow = (): Tile[] => {
+  private singleDigitRow = (): Tile[] => {
     const row = this.emptyRow();
     row[Math.floor(Math.random() * row.length)] = genDigit();
     return row;
   };
 
-  twoMergeableFullRow = (): Tile[] => {
+  private twoMergeableFullRow = (): Tile[] => {
     const row = this.fullUnmergeableRow();
     const index = pickOne(range(0, row.length - 2));
     const digit = genDigit();
@@ -67,7 +96,7 @@ export class BasicRowGen {
     return row;
   };
 
-  twoMergeableWithGapRow = (): Tile[] => {
+  private twoMergeableWithGapRow = (): Tile[] => {
     const row = this.fullUnmergeableRow();
     const index = pickOne(range(0, row.length - 2));
     const index2 = pickOne(range(index + 2, row.length));
@@ -82,7 +111,7 @@ export class BasicRowGen {
     return row;
   };
 
-  twoMergeableAndSpaceRow = (): Tile[] => {
+  private twoMergeableAndSpaceRow = (): Tile[] => {
     const row = this.emptyRow();
     const index = pickOne(range(0, row.length - 1));
     const index2 = pickOne(range(index + 1, row.length));
@@ -93,7 +122,7 @@ export class BasicRowGen {
     return row;
   };
 
-  threeMergeableAndSpaceRow = (): Tile[] => {
+  private threeMergeableAndSpaceRow = (): Tile[] => {
     const digit = genDigit();
     const row: Tile[] = this.emptyRow().map(() => digit);
     const emptyIndex = pickOne(range(0, row.length));
@@ -101,7 +130,7 @@ export class BasicRowGen {
     return row;
   };
 
-  threeMergeableAndDigitRow = (): Tile[] => {
+  private threeMergeableAndDigitRow = (): Tile[] => {
     const digit = genDigit();
     const row: Tile[] = this.emptyRow().map(() => digit);
     const putDigitIndex = pickOne([0, row.length - 1]);
@@ -109,7 +138,7 @@ export class BasicRowGen {
     return row;
   };
 
-  fourMergeable2KindsRow = (): Tile[] => {
+  private fourMergeable2KindsRow = (): Tile[] => {
     const row = this.emptyRow();
     const digit1 = genDigit();
     const digit2 = genDigit([digit1]);
@@ -120,11 +149,11 @@ export class BasicRowGen {
     return row;
   };
 
-  fourMergeableSameKindRow = (): Tile[] => {
+  private fourMergeableSameKindRow = (): Tile[] => {
     return Array(this.length).fill(genDigit());
   };
 
-  cascadingMergeableRow = (): Tile[] => {
+  private cascadingMergeableRow = (): Tile[] => {
     const row = this.emptyRow();
     const digit = genDigit();
     row[0] = digit;
@@ -134,7 +163,7 @@ export class BasicRowGen {
     return row;
   }
 
-  almostWinRow = (): Tile[] => {
+  private almostWinRow = (): Tile[] => {
     const row = this.fullUnmergeableRow();
     const index = pickOne(range(0, row.length - 2));
     const digit = 1024;

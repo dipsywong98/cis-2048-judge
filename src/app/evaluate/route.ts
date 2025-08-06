@@ -5,9 +5,10 @@ import { generateTestCases, TestCase } from "@/lib2048/generateTestCase";
 import { batch } from "@/lib2048/utils";
 import { detectEndgame, Grid, mergeWithDirection, Tile } from "@/lib2048/game";
 import * as z from "zod";
-import { evaluateTestCase, TestCaseResult } from "@/lib2048/evaluate";
+import { evaluate, evaluateTestCase, TestCaseResult } from "@/lib2048/evaluate";
 import { GridGen } from "@/lib2048/GridGen";
 import { BasicRowGen } from "@/lib2048/RowGen/BasicRowGen";
+import { RequirementType } from "@/lib2048/requirementsConfig";
 
 interface IEvaluateRequest {
   callbackUrl: string
@@ -29,42 +30,6 @@ function isEvaluateRequest(payload: unknown | IEvaluateRequest): payload is IEva
     && 'runId' in payload
 }
 
-
-const evaluate = async (teamUrl: string) => {
-  const gridGen = new GridGen(new BasicRowGen(4))
-  const testCases = generateTestCases(gridGen)
-  const testCaseResults: TestCaseResult[] = []
-
-  for (const batchedTestCases of batch(testCases, 10)) {
-    const results = await Promise.all(batchedTestCases.map(async (testCase) => {
-      return await evaluateTestCase(teamUrl, testCase)
-    }))
-    testCaseResults.push(...results)
-  }
-
-  return testCaseResults
-}
-
-const rateBasicTestCaseResults = (testCaseResults: TestCaseResult[]): {score: number, rate: Record<string, number>} => {
-  const totalTestCases = testCaseResults.length
-  const mergeCorrectRate = testCaseResults.filter(({ correct }) => correct?.merge).length / totalTestCases
-  const newTileCorrectRate = testCaseResults.filter(({ correct }) => correct?.newTile).length / totalTestCases
-  const endGameCorrectRate = testCaseResults.filter(({ correct }) => correct?.endGame).length / totalTestCases
-  const score = 0.5 * mergeCorrectRate + 0.1 * newTileCorrectRate + 0.4 * endGameCorrectRate
-  return {
-    score,
-    rate: {
-      mergeCorrectRate,
-      newTileCorrectRate,
-      endGameCorrectRate,
-    }
-  }
-}
-
-const commentBasicTestCaseResults = (testCaseResults: TestCaseResult[]): string => {
-  return testCaseResults.map((t) => t.message).join(';')
-}
-
 export async function POST(req: Request) {
   const body = await req.json()
   console.log('recieved evaluation request', body)
@@ -75,16 +40,21 @@ export async function POST(req: Request) {
 
   const teamUrl = rawTeamUrl.replace(/\/$/, '')
 
-  const testCaseResults = await evaluate(teamUrl)
-  const {score, rate} = rateBasicTestCaseResults(testCaseResults)
-  const message = commentBasicTestCaseResults(testCaseResults)
+  const evaluationResult = await evaluate(teamUrl)
 
   const callbackPayload: ICallbackRequest = {
-    score: Math.ceil(score * 100),
+    score: Object.values(evaluationResult.allWeightedScores).reduce((a,b) => a + b, 0),
     runId,
-    message
+    message: compileMessage(evaluationResult.allMessages),
   }
-  console.info({action: 'responding evaluation request', runId, callbackPayload, testCaseResults, rate})
+  console.info({ action: 'responding evaluation request', runId, callbackPayload, evaluationResult })
   await axios.post(callbackUrl, callbackPayload, { headers: { Authorization: config.COORDINATOR_TOKEN } })
   return NextResponse.json({ result: 'ok' })
+}
+
+const compileMessage = (messages: Record<string, string>) => {
+  if (Object.keys(messages).length === 1) {
+    return `Fix all basic requirements to unlock advance requirements. basic: ${messages[RequirementType.BASIC]}`
+  }
+  return `Check advance requirements at /2048++ endpoint. ${Object.entries(messages).map(([requirementName, message]) => `${requirementName}:${message}`)}`
 }
