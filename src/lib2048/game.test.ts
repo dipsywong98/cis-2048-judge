@@ -527,5 +527,12 @@ describe('advanced 2048 game logic', () => {
           .toEqual(['*2', 4, null, null]);
       })
     })
+
+    describe('ALL', () => {
+      it('special case for 1', () => {
+        expect(mergeRowLeft([null, '1', '*2', '*2', '1', '1']))
+          .toEqual([2, '*2', '1', '1', null, null]);
+      })
+    })
   })
 })

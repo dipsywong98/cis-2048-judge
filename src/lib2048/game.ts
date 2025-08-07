@@ -43,11 +43,11 @@ export const mergeRowLeft = (row: Tile[]): Tile[] => {
   const mergedRow: Tile[] = [];
   while (nonZeroTiles.length > 0) {
     const firstTile = nonZeroTiles.shift()!;
-    if (firstTile === '*2' || firstTile === '0' || firstTile === '1') {
+    if (firstTile === '*2' || firstTile === '0') {
       mergedRow.push(firstTile);
     }
-    else if (firstTile === nonZeroTiles[0] || nonZeroTiles[0] === '*2') {
-      mergedRow.push(firstTile * 2);
+    else if ((firstTile === nonZeroTiles[0] || nonZeroTiles[0] === '*2') && nonZeroTiles[0] !== '1') {
+      mergedRow.push((firstTile === '1' ? 1 : firstTile) * 2);
       nonZeroTiles.shift(); // Remove the merged tile
     }
     else {
