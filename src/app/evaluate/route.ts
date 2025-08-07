@@ -9,6 +9,7 @@ import { evaluate, evaluateTestCase, TestCaseResult } from "@/lib2048/evaluate";
 import { GridGen } from "@/lib2048/GridGen";
 import { BasicRowGen } from "@/lib2048/RowGen/BasicRowGen";
 import { RequirementType } from "@/lib2048/requirementsConfig";
+import systemConfig from "@/lib2048/systemConfig";
 
 interface IEvaluateRequest {
   callbackUrl: string
@@ -56,5 +57,5 @@ const compileMessage = (messages: Record<string, string>) => {
   if (Object.keys(messages).length === 1) {
     return `Fix all basic requirements to unlock advance requirements. basic: ${messages[RequirementType.BASIC]}`
   }
-  return `Check advance requirements at /2048++ endpoint. ${Object.entries(messages).map(([requirementName, message]) => `${requirementName}:${message}`)}`
+  return `Check advance requirements at ${systemConfig.APP_URL}/?showAdvance=please. ${Object.entries(messages).map(([requirementName, message]) => `${requirementName}:${message}`)}`
 }
