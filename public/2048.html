@@ -127,11 +127,14 @@
     }
 
     function evaluate(key) {
+        const mergeDirection = getMergeDirection(key);
+        if (!mergeDirection) return;
+
         fetch("/2048", {
             method: "POST",
             body: JSON.stringify({
                 "grid": getGrid(),
-                "mergeDirection": getMergeDirection(key),
+                "mergeDirection": mergeDirection,
             }),
         })
             .then((res) => res.json())
