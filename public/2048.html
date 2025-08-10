@@ -96,10 +96,10 @@
         let grid = [];
         for (let row = 0; row < 4; row++) {
             grid.push([
-                document.querySelector(`#cell-${row}-0 text`).textContent,
-                document.querySelector(`#cell-${row}-1 text`).textContent,
-                document.querySelector(`#cell-${row}-2 text`).textContent,
-                document.querySelector(`#cell-${row}-3 text`).textContent,
+                parseInt(document.querySelector(`#cell-${row}-0 text`).textContent),
+                parseInt(document.querySelector(`#cell-${row}-1 text`).textContent),
+                parseInt(document.querySelector(`#cell-${row}-2 text`).textContent),
+                parseInt(document.querySelector(`#cell-${row}-3 text`).textContent),
             ]);
         }
         return grid;
