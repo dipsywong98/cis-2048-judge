@@ -37,7 +37,7 @@ function isEvaluateRequest(
 
 export async function POST(req: Request) {
   const body = await req.json();
-  console.log("recieved evaluation request", body);
+  console.log("received evaluation request", body);
   if (!isEvaluateRequest(body)) {
     return NextResponse.json({ result: "ok" });
   }

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <title>2048</title>
+    <style>
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f0f4f8;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 0;
+        }
+
+        h1 {
+            margin: 20px 0 10px 0;
+            color: #333;
+        }
+
+        svg {
+            width: 420px;
+            height: 420px;
+            background: #fff;
+            border: 1px solid #ddd;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        rect {
+            stroke: #bbb;
+            stroke-width: 1;
+        }
+
+        rect:hover {
+            stroke: #777;
+            fill: #777;
+        }
+
+        text {
+            font-size: 30px;
+            fill: #333;
+            text-anchor: middle;
+            dominant-baseline: central;
+        }
+    </style>
+</head>
+<body>
+<h1>2048</h1>
+<svg viewBox="0 0 400 400" id="gridSvg"></svg>
+<p id="endGameText"></p>
+
+<script>
+    function renderGrid(grid) {
+        const svg = document.getElementById("gridSvg");
+        svg.innerHTML = "";
+
+        const cellSize = 100;
+        for (let r = 0; r < 4; r++) {
+            for (let c = 0; c < 4; c++) {
+                const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+                g.id = `cell-${r}-${c}`;
+                g.setAttribute(
+                    "transform",
+                    `translate(${c * cellSize},${r * cellSize})`
+                );
+
+                const rect = document.createElementNS(
+                    "http://www.w3.org/2000/svg",
+                    "rect"
+                );
+                rect.setAttribute("width", cellSize);
+                rect.setAttribute("height", cellSize);
+                rect.setAttribute("fill", "#fff");
+
+                const txt = document.createElementNS(
+                    "http://www.w3.org/2000/svg",
+                    "text"
+                );
+                txt.setAttribute("x", cellSize / 2);
+                txt.setAttribute("y", cellSize / 2);
+                txt.textContent = `${grid[r][c]}`;
+
+                g.appendChild(rect);
+                g.appendChild(txt);
+                svg.appendChild(g);
+            }
+        }
+    }
+
+    addEventListener("keyup", (event) => {
+        evaluate(event.key);
+    });
+
+    function getGrid() {
+        let grid = [];
+        for (let row = 0; row < 4; row++) {
+            grid.push([
+                document.querySelector(`#cell-${row}-0 text`).textContent,
+                document.querySelector(`#cell-${row}-1 text`).textContent,
+                document.querySelector(`#cell-${row}-2 text`).textContent,
+                document.querySelector(`#cell-${row}-3 text`).textContent,
+            ]);
+        }
+        return grid;
+    }
+
+    function getMergeDirection(key) {
+        let mergeDirection = "UP";
+        switch (key) {
+            case "ArrowUp":
+                mergeDirection = "UP";
+                break;
+            case "ArrowDown":
+                mergeDirection = "DOWN";
+                break;
+            case "ArrowLeft":
+                mergeDirection = "LEFT";
+                break;
+            case "ArrowRight":
+                mergeDirection = "RIGHT";
+                break;
+            default:
+                return;
+        }
+        return mergeDirection;
+    }
+
+    function evaluate(key) {
+        fetch("/2048", {
+            method: "POST",
+            body: JSON.stringify({
+                "grid": getGrid(),
+                "mergeDirection": getMergeDirection(key),
+            }),
+        })
+            .then((res) => res.json())
+            .then((data) => {
+                renderGrid(data.nextGrid);
+                document.getElementById("endGameText").textContent = data.endGame;
+            });
+    }
+
+    const initialGrid = [
+        [0, 2, 0, 0],
+        [0, 0, 0, 0],
+        [0, 0, 2, 0],
+        [0, 0, 0, 0],
+    ];
+    renderGrid(initialGrid);
+</script>
+</body>
+</html>
