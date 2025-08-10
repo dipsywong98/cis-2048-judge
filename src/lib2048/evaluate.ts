@@ -128,7 +128,7 @@ export const evaluateTestCase = async (
     .catch((e) => ({ error: e, response: undefined }));
 
   if (error instanceof AxiosError && error.response) {
-    const message = `Error occured - ${error}`.replace(
+    const message = `Error occurred - ${error}`.replace(
       "AxiosError",
       "Error in participant server",
     );
@@ -138,14 +138,14 @@ export const evaluateTestCase = async (
       message,
     };
   } else if (error instanceof z.ZodError) {
-    const message = `Error occured - invalid response from participant server: ${error}`;
+    const message = `Error occurred - invalid response from participant server: ${error}`;
     return {
       testCase,
       error,
       message,
     };
   } else if (error !== undefined) {
-    const message = `Unknown error occured`;
+    const message = `Unknown error occurred`;
     console.error(error);
     return {
       testCase,

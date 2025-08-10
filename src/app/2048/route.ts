@@ -21,9 +21,10 @@ export async function POST(req: Request) {
   if (!config.ENABLE_FAKE_STUDENT) {
     return notFound();
   }
-  console.log("received", await req.json());
 
   const { grid, mergeDirection }: GridOpPayload = await req.json();
+  console.log(grid, mergeDirection);
+
   const mergedGrid = mergeWithDirection(grid, mergeDirection);
   if (isSameGrid(mergedGrid, grid)) {
     return NextResponse.json({
