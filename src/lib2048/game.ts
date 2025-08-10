@@ -1,14 +1,14 @@
 import { transpose } from "./utils";
 
-export type Tile = number | null | '*2' | '0' | '1';
+export type Tile = number | null | "*2" | "0" | "1";
 export type Grid = Tile[][];
 export const Direction = {
-  UP: 'UP',
-  DOWN: 'DOWN',
-  LEFT: 'LEFT',
-  RIGHT: 'RIGHT',
-}
-export type Direction = typeof Direction[keyof typeof Direction];
+  UP: "UP",
+  DOWN: "DOWN",
+  LEFT: "LEFT",
+  RIGHT: "RIGHT",
+};
+export type Direction = (typeof Direction)[keyof typeof Direction];
 
 const splitArrayOnElement = <T>(array: T[], element: T): T[][] => {
   const result: T[][] = [];
@@ -23,7 +23,7 @@ const splitArrayOnElement = <T>(array: T[], element: T): T[][] => {
   }
   result.push(current);
   return result;
-}
+};
 
 const joinArrayWithElement = <T>(arrays: T[][], element: T): T[] => {
   return arrays.reduce((acc, arr, idx) => {
@@ -31,26 +31,27 @@ const joinArrayWithElement = <T>(arrays: T[][], element: T): T[] => {
     acc.push(...arr);
     return acc;
   }, [] as T[]);
-}
+};
 
 export const mergeRowLeft = (row: Tile[]): Tile[] => {
-  const segments = splitArrayOnElement(row, '0')
+  const segments = splitArrayOnElement(row, "0");
   if (segments.length > 1) {
-    const mergedSegments = segments.map(mergeRowLeft)
-    return joinArrayWithElement(mergedSegments, '0')
+    const mergedSegments = segments.map(mergeRowLeft);
+    return joinArrayWithElement(mergedSegments, "0");
   }
-  const nonZeroTiles = row.filter(tile => tile !== null);
+  const nonZeroTiles = row.filter((tile) => tile !== null);
   const mergedRow: Tile[] = [];
   while (nonZeroTiles.length > 0) {
     const firstTile = nonZeroTiles.shift()!;
-    if (firstTile === '*2' || firstTile === '0') {
+    if (firstTile === "*2" || firstTile === "0") {
       mergedRow.push(firstTile);
-    }
-    else if ((firstTile === nonZeroTiles[0] || nonZeroTiles[0] === '*2') && nonZeroTiles[0] !== '1') {
-      mergedRow.push((firstTile === '1' ? 1 : firstTile) * 2);
+    } else if (
+      (firstTile === nonZeroTiles[0] || nonZeroTiles[0] === "*2") &&
+      nonZeroTiles[0] !== "1"
+    ) {
+      mergedRow.push((firstTile === "1" ? 1 : firstTile) * 2);
       nonZeroTiles.shift(); // Remove the merged tile
-    }
-    else {
+    } else {
       mergedRow.push(firstTile);
     }
   }
@@ -68,11 +69,11 @@ export const mergeRowRight = (row: Tile[]): Tile[] => {
 };
 
 export const mergeGridLeft = (grid: Tile[][]): Tile[][] => {
-  return grid.map(row => mergeRowLeft(row));
-}
+  return grid.map((row) => mergeRowLeft(row));
+};
 
 export const mergeGridRight = (grid: Tile[][]): Tile[][] => {
-  return grid.map(row => mergeRowRight(row));
+  return grid.map((row) => mergeRowRight(row));
 };
 
 export const mergeGridUp = (grid: Tile[][]): Tile[][] => {
@@ -90,7 +91,7 @@ export const mergeGridDown = (grid: Tile[][]): Tile[][] => {
 export const generateNewTile = (grid: Tile[][]): Tile[][] => {
   const emptyLocations = grid
     .flatMap((row, rowIndex) =>
-      row.map((tile, colIndex) => ({ tile, rowIndex, colIndex }))
+      row.map((tile, colIndex) => ({ tile, rowIndex, colIndex })),
     )
     .filter(({ tile }) => tile === null);
 
@@ -100,23 +101,23 @@ export const generateNewTile = (grid: Tile[][]): Tile[][] => {
 
   const randomIndex = Math.floor(Math.random() * emptyLocations.length);
   const { rowIndex, colIndex } = emptyLocations[randomIndex];
-  const newGrid = grid.map(r => [...r]);
+  const newGrid = grid.map((r) => [...r]);
   newGrid[rowIndex][colIndex] = 2;
   return newGrid;
-}
+};
 
-export const WIN = 'win';
-export const LOSE = 'lose';
+export const WIN = "win";
+export const LOSE = "lose";
 
 export type EndGameStatus = typeof WIN | typeof LOSE | null;
 
 export const detectEndgame = (grid: Tile[][]): EndGameStatus => {
   // Check for 2048 tile
-  if (grid.some(row => row.some(it => it === 2048))) {
+  if (grid.some((row) => row.some((it) => it === 2048))) {
     return WIN;
   }
   // Check for any empty tile
-  if (grid.some(row => row.some(it => it === null))) {
+  if (grid.some((row) => row.some((it) => it === null))) {
     return null;
   }
   // Check if any move changes the grid
@@ -130,7 +131,10 @@ export const detectEndgame = (grid: Tile[][]): EndGameStatus => {
   return LOSE;
 };
 
-export const mergeWithDirection = (grid: Grid, mergeDirection: Direction): Grid => {
+export const mergeWithDirection = (
+  grid: Grid,
+  mergeDirection: Direction,
+): Grid => {
   let mergedGrid: Grid;
   switch (mergeDirection) {
     case Direction.UP:
@@ -149,4 +153,4 @@ export const mergeWithDirection = (grid: Grid, mergeDirection: Direction): Grid 
       throw new Error(`Unknown merge direction: ${mergeDirection}`);
   }
   return mergedGrid;
-}
+};

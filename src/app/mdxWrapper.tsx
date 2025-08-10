@@ -1,5 +1,5 @@
-'use client'
+"use client";
 
-import { MDXRemote } from "next-mdx-remote"
+import { MDXRemote } from "next-mdx-remote";
 
-export const MDXWrapper: typeof MDXRemote = (props) => <MDXRemote {...props} />
+export const MDXWrapper: typeof MDXRemote = (props) => <MDXRemote {...props} />;

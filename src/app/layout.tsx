@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import 'github-markdown-css'
+import "github-markdown-css";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -16,7 +16,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={[inter.className, 'markdown-body'].join(' ')} style={{maxWidth: '700px', margin: 'auto', padding: '45px'}}>
+      <body
+        className={[inter.className, "markdown-body"].join(" ")}
+        style={{ maxWidth: "700px", margin: "auto", padding: "45px" }}
+      >
         {children}
       </body>
     </html>

@@ -4,7 +4,7 @@ import { BasicRowGen } from "./RowGen/BasicRowGen";
 import { RowGen } from "./RowGen/RowGen";
 
 export class GridGen<RowFeature extends string> {
-  private size: number
+  private size: number;
   public rowGen: RowGen<RowFeature>;
   constructor(rowGen: RowGen<RowFeature>) {
     this.rowGen = rowGen;
@@ -13,54 +13,68 @@ export class GridGen<RowFeature extends string> {
 
   private materialize = (features: RowFeature[]) => {
     return features.map((feature) => {
-      return this.rowGen.renderRow(feature)
+      return this.rowGen.renderRow(feature);
     });
-  }
+  };
 
   genGrid = (features: RowFeature[]): Grid => {
-    const rowFeatures = Array(this.size).fill(null).map(() => pickOne(features));
-    return this.materialize(rowFeatures)
-  }
+    const rowFeatures = Array(this.size)
+      .fill(null)
+      .map(() => pickOne(features));
+    return this.materialize(rowFeatures);
+  };
 
-  genFullMergeableGrid = (features?: RowFeature[]): { rowFeatures: RowFeature[], grid: Grid } => {
-    const chosenFullRowFeatures: RowFeature[] = features
-      ?.filter(feature => (this.rowGen.fullRowFeatures as RowFeature[]).includes(feature))
-      ?? this.rowGen.fullRowFeatures;
-    const rowFeatures: RowFeature[] = Array(this.size).fill(null).map(() => pickOne(chosenFullRowFeatures));
-    if (!rowFeatures.some(feature => feature !== 'fullUnmergeableRow')) {
-      rowFeatures[pickOne(range(0, rowFeatures.length))] = (
-        pickOne(chosenFullRowFeatures.filter(f => f !== 'fullUnmergeableRow'))
+  genFullMergeableGrid = (
+    features?: RowFeature[],
+  ): { rowFeatures: RowFeature[]; grid: Grid } => {
+    const chosenFullRowFeatures: RowFeature[] =
+      features?.filter((feature) =>
+        (this.rowGen.fullRowFeatures as RowFeature[]).includes(feature),
+      ) ?? this.rowGen.fullRowFeatures;
+    const rowFeatures: RowFeature[] = Array(this.size)
+      .fill(null)
+      .map(() => pickOne(chosenFullRowFeatures));
+    if (!rowFeatures.some((feature) => feature !== "fullUnmergeableRow")) {
+      rowFeatures[pickOne(range(0, rowFeatures.length))] = pickOne(
+        chosenFullRowFeatures.filter((f) => f !== "fullUnmergeableRow"),
       );
     }
     return {
       rowFeatures,
-      grid: this.materialize(rowFeatures)
-    }
-  }
+      grid: this.materialize(rowFeatures),
+    };
+  };
 
   private genNoSameNeighborGrid = (): Grid => {
-    const grid = Array(this.size).fill(null).map(() => Array(this.size).fill(null));
+    const grid = Array(this.size)
+      .fill(null)
+      .map(() => Array(this.size).fill(null));
     for (let rowIndex = 0; rowIndex < this.size; rowIndex++) {
       for (let colIndex = 0; colIndex < this.size; colIndex++) {
         const tileAbove = grid[rowIndex - 1]?.[colIndex] ?? 0;
         const tileLeft = grid[rowIndex]?.[colIndex - 1] ?? 0;
         // exclude 2, 4 so new tile will not be mergeable
-        grid[rowIndex][colIndex] = genDigit([2, 4, tileAbove, tileLeft], this.rowGen.specialTiles)
+        grid[rowIndex][colIndex] = genDigit(
+          [2, 4, tileAbove, tileLeft],
+          this.rowGen.specialTiles,
+        );
       }
     }
-    return grid
-  }
+    return grid;
+  };
 
   genMergeLeftBecomeUnmergeableGrid = (full: boolean, win: boolean): Grid => {
     // start with a full grid that is unmergeable
-    const grid = this.genNoSameNeighborGrid()
+    const grid = this.genNoSameNeighborGrid();
 
-    const positionsNextToNumber = grid.flatMap((row, rowIndex) => row.flatMap((_, colIndex) => {
-      if (typeof grid[rowIndex][colIndex + 1] === 'number') {
-        return [[rowIndex, colIndex]]
-      }
-      return []
-    }))
+    const positionsNextToNumber = grid.flatMap((row, rowIndex) =>
+      row.flatMap((_, colIndex) => {
+        if (typeof grid[rowIndex][colIndex + 1] === "number") {
+          return [[rowIndex, colIndex]];
+        }
+        return [];
+      }),
+    );
 
     // then create a gap
     // after merge left, gap must appears at the right most
@@ -75,7 +89,7 @@ export class GridGen<RowFeature extends string> {
 
     if (win) {
       // make next step 2n will be 2048
-      grid[rowIndex][colIndex + 1] = 2048
+      grid[rowIndex][colIndex + 1] = 2048;
     }
 
     // optionally make the grid was originally full before the merge left
@@ -83,10 +97,10 @@ export class GridGen<RowFeature extends string> {
     // ... (gap) (2n) ... -> ... (n) (n) ...
     // so after merge left, it becomes
     // ... (2n) (?) ...
-    const numberToRight = (grid[rowIndex][colIndex + 1] ?? 8)
-    if (full && typeof numberToRight === 'number') {
-      grid[rowIndex][colIndex] = numberToRight / 2
-      grid[rowIndex][colIndex + 1] = grid[rowIndex][colIndex]
+    const numberToRight = grid[rowIndex][colIndex + 1] ?? 8;
+    if (full && typeof numberToRight === "number") {
+      grid[rowIndex][colIndex] = numberToRight / 2;
+      grid[rowIndex][colIndex + 1] = grid[rowIndex][colIndex];
       // if the row satisfy this pattern
       // ... (n) (gap) (2n) ...
       // the above will make the row become
@@ -98,7 +112,10 @@ export class GridGen<RowFeature extends string> {
       // ... (2n) (n) (?) ...
       // which breaks our expectation and make the new 2n might be mergeable vertically
       // so we need to reroll the (n) tile to other value
-      if (grid[rowIndex][colIndex - 1] === grid[rowIndex][colIndex] || grid[rowIndex][colIndex - 1] === grid[rowIndex][colIndex] * 2) {
+      if (
+        grid[rowIndex][colIndex - 1] === grid[rowIndex][colIndex] ||
+        grid[rowIndex][colIndex - 1] === grid[rowIndex][colIndex] * 2
+      ) {
         grid[rowIndex][colIndex - 1] = genDigit([
           2,
           4,
@@ -110,6 +127,6 @@ export class GridGen<RowFeature extends string> {
         ]);
       }
     }
-    return grid
-  }
+    return grid;
+  };
 }

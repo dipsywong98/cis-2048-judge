@@ -1,4 +1,4 @@
-import packageJson from '../../package.json';
+import packageJson from "../../package.json";
 
 const { version, name } = packageJson;
 
@@ -15,29 +15,29 @@ function env(key: string, fallback: boolean): boolean;
 
 function env(key: string, fallback: EnvType): EnvType {
   const value = process.env[key];
-  if (typeof fallback === 'string') {
+  if (typeof fallback === "string") {
     return value ?? fallback;
   }
-  if (typeof fallback === 'number') {
+  if (typeof fallback === "number") {
     return Number.parseFloat(env(key, fallback.toString()));
   }
-  if (typeof fallback === 'boolean') {
-    return value !== undefined ? value === 'true' : fallback
+  if (typeof fallback === "boolean") {
+    return value !== undefined ? value === "true" : fallback;
   }
   if (Array.isArray(fallback)) {
-    return value?.split(';;') ?? fallback;
+    return value?.split(";;") ?? fallback;
   }
   return Promise.resolve(value ?? fallback);
 }
 
 const config = {
-  APP_NAME: env('APP_NAME', name),
-  APP_URL: env('APP_URL', `https://${env('VERCEL_URL', 'localhost:3000')}`),
-  COORDINATOR_TOKEN: env('COORDINATOR_TOKEN', ''),
-  ENABLE_FAKE_STUDENT: env('ENABLE_FAKE_STUDENT', false),
-  GRADE_TIMEOUT_SECOND: env('GRADE_TIMEOUT_SECOND', 5),
+  APP_NAME: env("APP_NAME", name),
+  APP_URL: env("APP_URL", `https://${env("VERCEL_URL", "localhost:3000")}`),
+  COORDINATOR_TOKEN: env("COORDINATOR_TOKEN", ""),
+  ENABLE_FAKE_STUDENT: env("ENABLE_FAKE_STUDENT", false),
+  GRADE_TIMEOUT_SECOND: env("GRADE_TIMEOUT_SECOND", 5),
   APP_VERSION: version,
-  FAQ: env('FAQ', [])
+  FAQ: env("FAQ", []),
 };
 
 export default config;

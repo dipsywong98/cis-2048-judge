@@ -3,69 +3,69 @@ import { genDigit, mirror, pickOne, range, shuffle, transpose } from "../utils";
 import { RowGen } from "./RowGen";
 
 const basicRowFeatures = [
-  'almostWinRow',
-  'cascadingMergeableRow',
-  'emptyRow',
-  'fourMergeable2KindsRow',
-  'fourMergeableSameKindRow',
-  'fullUnmergeableRow',
-  'singleDigitRow',
-  'threeMergeableAndDigitRow',
-  'threeMergeableAndSpaceRow',
-  'twoMergeableAndSpaceRow',
-  'twoMergeableFullRow',
-  'twoMergeableWithGapRow',
-]
+  "almostWinRow",
+  "cascadingMergeableRow",
+  "emptyRow",
+  "fourMergeable2KindsRow",
+  "fourMergeableSameKindRow",
+  "fullUnmergeableRow",
+  "singleDigitRow",
+  "threeMergeableAndDigitRow",
+  "threeMergeableAndSpaceRow",
+  "twoMergeableAndSpaceRow",
+  "twoMergeableFullRow",
+  "twoMergeableWithGapRow",
+];
 
-type BasicFeatures = typeof basicRowFeatures[number]
+type BasicFeatures = (typeof basicRowFeatures)[number];
 
 // features are left-right symmetry
 export class BasicRowGen implements RowGen<BasicFeatures> {
   length: number;
-  features = basicRowFeatures
+  features = basicRowFeatures;
   fullRowFeatures = [
-    'fourMergeable2KindsRow',
-    'fourMergeableSameKindRow',
-    'threeMergeableAndDigitRow',
-    'twoMergeableFullRow',
-    'fullUnmergeableRow',
-    'cascadingMergeableRow',
-    'almostWinRow',
-  ] satisfies Array<typeof this.features[number]>
-  specialTiles: Tile[] = []
+    "fourMergeable2KindsRow",
+    "fourMergeableSameKindRow",
+    "threeMergeableAndDigitRow",
+    "twoMergeableFullRow",
+    "fullUnmergeableRow",
+    "cascadingMergeableRow",
+    "almostWinRow",
+  ] satisfies Array<(typeof this.features)[number]>;
+  specialTiles: Tile[] = [];
   constructor(length = 4) {
     this.length = length;
   }
   renderRow = (feature: BasicFeatures) => {
-    switch(feature) {
-      case 'emptyRow':
+    switch (feature) {
+      case "emptyRow":
         return this.emptyRow();
-      case 'fullUnmergeableRow':
+      case "fullUnmergeableRow":
         return this.fullUnmergeableRow();
-      case 'singleDigitRow':
+      case "singleDigitRow":
         return this.singleDigitRow();
-      case 'twoMergeableFullRow':
+      case "twoMergeableFullRow":
         return this.twoMergeableFullRow();
-      case 'twoMergeableWithGapRow':
+      case "twoMergeableWithGapRow":
         return this.twoMergeableWithGapRow();
-      case 'twoMergeableAndSpaceRow':
+      case "twoMergeableAndSpaceRow":
         return this.twoMergeableAndSpaceRow();
-      case 'threeMergeableAndSpaceRow':
+      case "threeMergeableAndSpaceRow":
         return this.threeMergeableAndSpaceRow();
-      case 'threeMergeableAndDigitRow':
+      case "threeMergeableAndDigitRow":
         return this.threeMergeableAndDigitRow();
-      case 'fourMergeable2KindsRow':
+      case "fourMergeable2KindsRow":
         return this.fourMergeable2KindsRow();
-      case 'fourMergeableSameKindRow':
+      case "fourMergeableSameKindRow":
         return this.fourMergeableSameKindRow();
-      case 'cascadingMergeableRow':
+      case "cascadingMergeableRow":
         return this.cascadingMergeableRow();
-      case 'almostWinRow':
+      case "almostWinRow":
         return this.almostWinRow();
       default:
         throw new Error(`Unknown feature: ${feature}`);
     }
-  }
+  };
   private emptyRow = (): Tile[] => {
     return Array(this.length).fill(null);
   };
@@ -161,7 +161,7 @@ export class BasicRowGen implements RowGen<BasicFeatures> {
     row[2] = digit * 2;
     row[3] = digit * 4;
     return row;
-  }
+  };
 
   private almostWinRow = (): Tile[] => {
     const row = this.fullUnmergeableRow();
@@ -170,5 +170,5 @@ export class BasicRowGen implements RowGen<BasicFeatures> {
     row[index] = digit;
     row[index + 1] = digit;
     return row;
-  }
+  };
 }
