@@ -71,9 +71,9 @@ const rateBasicTestCaseResults = (
     testCaseResults.filter(({ correct }) => correct?.endGame).length /
     totalTestCases;
   const score =
-    0.5 * mergeCorrectRate +
+    0.7 * mergeCorrectRate +
     0.1 * newTileCorrectRate +
-    0.4 * endGameCorrectRate;
+    0.2 * endGameCorrectRate;
   return {
     score,
     rate: {
