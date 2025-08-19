@@ -89,12 +89,12 @@ const commentTestCaseResults = (
 ): string => {
   const firstMessage = testCaseResults[0]?.message
   if (testCaseResults.every(it => it.message === firstMessage)) {
-    return `${firstMessage}(ALL)`
+    return `${firstMessage}(ALL test cases)`
   }
   return Object.entries(testCaseResults.reduce<Record<string, number[]>>(
     (acc, cur, id) => ({ ...acc, [cur.message]: [...(acc[cur.message] ?? []), id] }), {})
     ).map(([message, ids]) => (
-      `${message}(${ids.join(',')})`
+      `${message}(test case ${ids.join(',')})`
     )).join("; ");
 };
 
