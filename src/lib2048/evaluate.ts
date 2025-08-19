@@ -34,7 +34,7 @@ export const evaluate = async (teamUrl: string) => {
   )) {
     const testCaseResults = await evaluateForGridGen(teamUrl, gridGen);
     const { score, rate } = rateBasicTestCaseResults(testCaseResults);
-    const message = commentBasicTestCaseResults(testCaseResults);
+    const message = commentTestCaseResults(testCaseResults);
     const weightedScore = score * fullScore;
 
     allWeightedScores[requirementName] = weightedScore;
@@ -84,10 +84,18 @@ const rateBasicTestCaseResults = (
   };
 };
 
-const commentBasicTestCaseResults = (
+const commentTestCaseResults = (
   testCaseResults: TestCaseResult[],
 ): string => {
-  return testCaseResults.map((t) => t.message).join(";");
+  const firstMessage = testCaseResults[0]?.message
+  if (testCaseResults.every(it => it.message === firstMessage)) {
+    return `${firstMessage}(ALL)`
+  }
+  return Object.entries(testCaseResults.reduce<Record<string, number[]>>(
+    (acc, cur, id) => ({ ...acc, [cur.message]: [...(acc[cur.message] ?? []), id] }), {})
+    ).map(([message, ids]) => (
+      `${message}(${ids.join(',')})`
+    )).join("; ");
 };
 
 export const evaluateForGridGen = async <RowFeature extends string>(

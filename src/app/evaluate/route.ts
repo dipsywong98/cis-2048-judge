@@ -53,7 +53,7 @@ export async function POST(req: Request) {
       0,
     ),
     runId,
-    message: compileMessage(evaluationResult.allMessages),
+    message: compileMessage(evaluationResult.allMessages).substring(0,4096),
   };
   console.info({
     action: "responding evaluation request",
@@ -69,13 +69,13 @@ export async function POST(req: Request) {
 
 const compileMessage = (messages: Record<string, string>) => {
   if (Object.keys(messages).length === 1) {
-    return `Fix all basic requirements to unlock advance requirements. basic: ${
+    return `Fix all basic requirements to unlock advance requirements.\nbasic: ${
       messages[RequirementType.BASIC]
     }`;
   }
   return `Check advance requirements at ${
     systemConfig.APP_URL
-  }/?showAdvance=please. ${Object.entries(messages).map(
-    ([requirementName, message]) => `${requirementName}:${message}`,
-  )}`;
+  }/?showAdvance=please.\n${Object.entries(messages).map(
+    ([requirementName, message]) => `${requirementName}:\n${message}`,
+  ).join('\n')}`;
 };
