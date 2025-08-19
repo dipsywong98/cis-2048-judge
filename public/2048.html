@@ -43,10 +43,32 @@
             text-anchor: middle;
             dominant-baseline: central;
         }
+
+        .input-holder {
+            display: flex;
+            align-items: baseline;
+            margin: 8px;
+        }
+
+        input#server-url {
+            field-sizing: content;
+            min-width: 150px;
+        }
     </style>
 </head>
 <body>
 <h1>2048</h1>
+<div class="input-holder">
+    <div>
+        Logic URL:
+    </div>
+    <div>
+        <input id="server-url" placeholder="https://your-challenge-server-url">
+    </div>
+    <div>
+        /2048
+    </div>
+</div>
 <svg viewBox="0 0 400 400" id="gridSvg"></svg>
 <p id="endGameText"></p>
 
@@ -79,7 +101,7 @@
                 );
                 txt.setAttribute("x", cellSize / 2);
                 txt.setAttribute("y", cellSize / 2);
-                txt.textContent = `${grid[r][c]}`;
+                txt.textContent = `${grid[r][c] ?? ''}`;
 
                 g.appendChild(rect);
                 g.appendChild(txt);
@@ -96,10 +118,10 @@
         let grid = [];
         for (let row = 0; row < 4; row++) {
             grid.push([
-                parseInt(document.querySelector(`#cell-${row}-0 text`).textContent) || 0,
-                parseInt(document.querySelector(`#cell-${row}-1 text`).textContent) || 0,
-                parseInt(document.querySelector(`#cell-${row}-2 text`).textContent) || 0,
-                parseInt(document.querySelector(`#cell-${row}-3 text`).textContent) || 0,
+                parseInt(document.querySelector(`#cell-${row}-0 text`).textContent) || null,
+                parseInt(document.querySelector(`#cell-${row}-1 text`).textContent) || null,
+                parseInt(document.querySelector(`#cell-${row}-2 text`).textContent) || null,
+                parseInt(document.querySelector(`#cell-${row}-3 text`).textContent) || null,
             ]);
         }
         return grid;
@@ -129,8 +151,9 @@
     function evaluate(key) {
         const mergeDirection = getMergeDirection(key);
         if (!mergeDirection) return;
+        const serverUrl = document.getElementById('server-url').value
 
-        fetch("/2048", {
+        fetch(`${serverUrl}/2048`, {
             method: "POST",
             body: JSON.stringify({
                 "grid": getGrid(),
@@ -141,14 +164,18 @@
             .then((data) => {
                 renderGrid(data.nextGrid);
                 document.getElementById("endGameText").textContent = data.endGame;
+            })
+            .catch((error) => {
+                window.alert('Error when connecting to logic server! Check log for details')
+                console.error(error)
             });
     }
 
     const initialGrid = [
-        [0, 2, 0, 0],
-        [0, 0, 0, 0],
-        [0, 0, 2, 0],
-        [0, 0, 0, 0],
+        [null, 2, null, null],
+        [null, null, null, null],
+        [null, null, 2, null],
+        [null, null, null, null],
     ];
     renderGrid(initialGrid);
 </script>

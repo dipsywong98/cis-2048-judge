@@ -6,6 +6,7 @@ const nextConfig = {
   pageExtensions: ["js", "jsx", "mdx", "ts", "tsx"],
   // Optionally, add any other Next.js config below
   transpilePackages: ["next-mdx-remote"],
+  crossOrigin: "anonymous"
 };
 
 module.exports = withMDX(nextConfig);
