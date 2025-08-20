@@ -66,8 +66,10 @@ export async function POST(req: Request) {
   });
   logEvaluationResult({
     runId,
+    teamUrl,
     callbackPayload,
     evaluationResult,
+    evaluatedAt: new Date(),
   })
   return NextResponse.json({ result: "ok" });
 }
