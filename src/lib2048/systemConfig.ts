@@ -37,7 +37,8 @@ const config = {
   ENABLE_FAKE_STUDENT: env("ENABLE_FAKE_STUDENT", false),
   GRADE_TIMEOUT_SECOND: env("GRADE_TIMEOUT_SECOND", 5),
   APP_VERSION: version,
-  FAQ: env("FAQ", []),
+  MONGO_URL: env("MONGO_URL", ""),
+  MONGO_DB: env("MONGO_DB", ""),
 };
 
 export default config;

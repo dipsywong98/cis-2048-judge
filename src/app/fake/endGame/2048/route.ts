@@ -23,7 +23,6 @@ export async function POST(req: Request) {
   }
 
   const { grid, mergeDirection }: GridOpPayload = await req.json();
-  console.log(grid, mergeDirection);
 
   const mergedGrid = mergeWithDirection(grid, mergeDirection);
   // if (isSameGrid(mergedGrid, grid)) {

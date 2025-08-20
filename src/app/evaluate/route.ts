@@ -10,6 +10,7 @@ import { GridGen } from "@/lib2048/GridGen";
 import { BasicRowGen } from "@/lib2048/RowGen/BasicRowGen";
 import { RequirementType } from "@/lib2048/requirementsConfig";
 import systemConfig from "@/lib2048/systemConfig";
+import { logEvaluationResult } from "@/lib2048/log";
 
 interface IEvaluateRequest {
   callbackUrl: string;
@@ -55,15 +56,19 @@ export async function POST(req: Request) {
     runId,
     message: compileMessage(evaluationResult.allMessages).substring(0,4096),
   };
-  console.info({
-    action: "responding evaluation request",
-    runId,
-    callbackPayload,
-    evaluationResult,
-  });
   await axios.post(callbackUrl, callbackPayload, {
     headers: { Authorization: config.COORDINATOR_TOKEN },
   });
+  console.info({
+    action: "responded evaluation request",
+    runId,
+    callbackPayload,
+  });
+  logEvaluationResult({
+    runId,
+    callbackPayload,
+    evaluationResult,
+  })
   return NextResponse.json({ result: "ok" });
 }
 
