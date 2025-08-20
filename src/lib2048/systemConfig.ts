@@ -37,7 +37,7 @@ const config = {
   ENABLE_FAKE_STUDENT: env("ENABLE_FAKE_STUDENT", false),
   GRADE_TIMEOUT_SECOND: env("GRADE_TIMEOUT_SECOND", 5),
   APP_VERSION: version,
-  MONGO_URL: env("MONGO_URL", ""),
+  MONGO_URL: env("MONGO_URL", "mongodb://localhost:27017"),
   MONGO_DB: env("MONGO_DB", ""),
   // mongo limit is 512MB storage, estimate each evaluation result cost 0.5MB
   // (actual each evaluation result is 0.3 MB with advanced requirements)
