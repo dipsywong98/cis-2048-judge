@@ -39,6 +39,9 @@ const config = {
   APP_VERSION: version,
   MONGO_URL: env("MONGO_URL", ""),
   MONGO_DB: env("MONGO_DB", ""),
+  // mongo limit is 512MB storage, estimate each evaluation result cost 0.5MB
+  // (actual each evaluation result is 0.3 MB with advanced requirements)
+  MONGO_LOG_LIMIT: env("MONGO_LOG_LIMIT", 1000),
 };
 
 export default config;
