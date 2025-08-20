@@ -22,6 +22,34 @@ We have a few different requirements, their weight are defined at https://github
 For each requirements, 70% count to correct merge, 10% correct new tile, 20% correct endgame status.
 https://github.com/dipsywong98/cis-2048-judge/blob/main/src/lib2048/evaluate.ts
 
+## Temporatory guide (Was used when UI code is not ready):
+
+expose a POST 2048 endpoint that accept payload in the following shape
+
+```json
+{
+    "grid": [
+        [2, 4, 8, 16],
+        [null, null, null, 8],
+        ...
+    ],
+    "mergeDirection": "UP"|"DOWN"|"LEFT"|"RIGHT"
+}
+```
+and response in the following shape
+```json
+{
+    "nextGrid": [
+        [2, 4, 8, 16],
+        [null, null, null, 8],
+        ...
+    ],
+    "endGame": "win" | "lose" | null
+}
+```
+The UI ask for a 2048 server (which to be implemented by participant).
+Then once the UI received player action on UP/DOWN/LEFT/RIGHT, it will post this interaction direction and current grid to the 2048 server, the server should merge the grid in the corresponding direction, spawn a new 2/4 to the grid, and then return result grid and end game status.
+
 ## Getting Started
 
 First, run the development server:
