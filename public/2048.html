@@ -73,6 +73,18 @@
 <p id="endGameText"></p>
 
 <script>
+    function getEndGameMessage(endGame) {
+        switch(endGame) {
+            case 'win':
+                return 'You WIN! Congratulations!'
+            case 'lose':
+                return 'You LOSE! Press F5 to try again!'
+            case null:
+                return ''
+            default:
+                throw new Error(`Unknown Endgame status ${endGame}`)
+        }
+    }
     function renderGrid(grid) {
         const svg = document.getElementById("gridSvg");
         svg.innerHTML = "";
@@ -163,7 +175,7 @@
             .then((res) => res.json())
             .then((data) => {
                 renderGrid(data.nextGrid);
-                document.getElementById("endGameText").textContent = data.endGame;
+                document.getElementById("endGameText").textContent = getEndGameMessage(data.endGame);
             })
             .catch((error) => {
                 window.alert('Error when connecting to logic server! Check log for details')
