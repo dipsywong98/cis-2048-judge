@@ -70,8 +70,9 @@ export class AdvanceRowGen implements RowGen<AdvanceRowFeature> {
   private twoSpecialWithoutSpaceBetweenRow = (): Tile[] => {
     const row = this.basicRow();
     const index = pickOne(range(0, row.length - 1));
-    row[index] = 0;
-    row[index + 1] = 0;
+    const specialTile = this.specialTiles[0] ?? null
+    row[index] = specialTile;
+    row[index + 1] = specialTile;
     return row;
   };
 
@@ -79,8 +80,9 @@ export class AdvanceRowGen implements RowGen<AdvanceRowFeature> {
     const row = this.basicRow();
     const block1Index = pickOne(range(0, row.length / 2));
     const block2Index = pickOne(range(row.length / 2, row.length));
-    row[block1Index] = 0;
-    row[block2Index] = 0;
+    const specialTile = this.specialTiles[0] ?? null
+    row[block1Index] = specialTile;
+    row[block2Index] = specialTile;
     for (let i = block1Index + 1; i < block2Index; i++) {
       row[i] = null;
     }
@@ -91,8 +93,9 @@ export class AdvanceRowGen implements RowGen<AdvanceRowFeature> {
     const row = this.basicRow();
     const block1Index = pickOne(range(0, row.length / 2));
     const block2Index = pickOne(range(row.length / 2, row.length));
-    row[block1Index] = 0;
-    row[block2Index] = 0;
+    const specialTile = this.specialTiles[0] ?? null
+    row[block1Index] = specialTile;
+    row[block2Index] = specialTile;
     for (let i = block1Index + 1; i < block2Index; i++) {
       if (Math.random() < 0.5) {
         row[i] = null;
