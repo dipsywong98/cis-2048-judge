@@ -10,18 +10,12 @@ import { GridGen } from "@/lib2048/GridGen";
 import { BasicRowGen } from "@/lib2048/RowGen/BasicRowGen";
 import { RequirementType } from "@/lib2048/requirementsConfig";
 import systemConfig from "@/lib2048/systemConfig";
-import { logEvaluationResult } from "@/lib2048/log";
+import { ICallbackRequest, logEvaluationResult } from "@/lib2048/log";
 
 interface IEvaluateRequest {
   callbackUrl: string;
   runId: string;
   teamUrl: string;
-}
-
-interface ICallbackRequest {
-  runId: string;
-  score: number;
-  message: string;
 }
 
 function isEvaluateRequest(

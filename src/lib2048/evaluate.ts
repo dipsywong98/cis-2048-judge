@@ -27,7 +27,7 @@ export const evaluate = async (teamUrl: string) => {
   const allWeightedScores: Record<string, number> = {};
   const allScores: Record<string, number> = {};
   const allMessages: Record<string, string> = {};
-  const allRates: Record<string, unknown> = {};
+  const allRates: Record<string, Record<string, number>> = {};
   const allTestResults: Record<string, TestCaseResult[]> = {};
   for (const [requirementName, { gridGen, fullScore }] of Object.entries(
     requirements,
@@ -153,11 +153,11 @@ export const evaluateTestCase = async (
       message,
     };
   } else if (error !== undefined) {
-    const message = `Unknown error occurred`;
+    const message = `Unknown error occurred ${error.toString() }`;
     console.error(error);
     return {
       testCase,
-      error,
+      error: error.toString(),
       message,
     };
   } else if (response !== undefined) {
