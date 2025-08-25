@@ -127,6 +127,7 @@ export const evaluateTestCase = async (
       headers: {
         "Content-Type": "application/json",
         Accept: "application/json",
+        "X-TestCase-Id": testCase.id,
       },
     })
     .then(({ data }) => ({

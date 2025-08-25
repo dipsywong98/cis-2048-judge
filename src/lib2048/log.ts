@@ -5,9 +5,11 @@ import { TestCaseResult } from "./evaluate"
 const client = new MongoClient(systemConfig.MONGO_URL)
 const collection = client.db(systemConfig.MONGO_DB).collection("evaluation_history")
 
-collection.createIndex({ teamUrl: 1 })
-collection.createIndex({ runId: 1 })
-collection.createIndex({ evaluatedAt: 1 })
+const createIndex = () => {
+  collection.createIndex({ teamUrl: 1 })
+  collection.createIndex({ runId: 1 })
+  collection.createIndex({ evaluatedAt: 1 })
+}
 
 export interface ICallbackRequest {
   runId: string;

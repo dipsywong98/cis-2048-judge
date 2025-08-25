@@ -48,7 +48,7 @@ export async function POST(req: Request) {
       0,
     ),
     runId,
-    message: compileMessage(evaluationResult.allMessages).substring(0,4096),
+    message: `[runId=${runId}] ${compileMessage(evaluationResult.allMessages)}`.substring(0, 4096),
   };
   await axios.post(callbackUrl, callbackPayload, {
     headers: { Authorization: config.COORDINATOR_TOKEN },
