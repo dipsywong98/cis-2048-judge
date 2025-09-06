@@ -46,10 +46,30 @@ export const logEvaluationResult = (data: EvaluationResult) => {
           console.warn('failed to prune old documents', e)
         })
     }
-    collection.insertOne(data).catch((e) => {
+    collection.insertOne(sanitizeData(data)).catch((e) => {
       console.warn('failed to log to mongo', e)
     })
   })
+}
+
+const sanitizeData = (data: EvaluationResult): EvaluationResult => {
+  return {
+    ...data,
+    evaluationResult: {
+      ...data.evaluationResult,
+      allTestResults: {
+        ...Object.fromEntries(Object.entries(data.evaluationResult.allTestResults)
+          .map(([key, testResults]) => {
+            return [key, testResults.map(({ error, ...result }) => {
+              return {
+                ...result,
+                error: !!error
+              }
+            })]
+          }))
+      }
+    }
+  }
 }
 
 export async function getEvaluationResult(runId: string): Promise<EvaluationResult | null> {
@@ -57,14 +77,14 @@ export async function getEvaluationResult(runId: string): Promise<EvaluationResu
   return result;
 }
 
-type EvaluationSummary = Pick<EvaluationResult, 'runId' | 'teamUrl' | 'evaluatedAt'> & {score: number, _id: string}
+type EvaluationSummary = Pick<EvaluationResult, 'runId' | 'teamUrl' | 'evaluatedAt'> & { score: number, _id: string }
 
 export async function getEvaluationResults(before: Date | undefined = undefined, limit: number = 50): Promise<EvaluationSummary[]> {
   const query: any = {}
   if (before !== undefined) {
     query['$lt'] = before
   }
-  const result = await collection.find<EvaluationSummary>({  }, {
+  const result = await collection.find<EvaluationSummary>({}, {
     projection: {
       runId: 1,
       teamUrl: 1,

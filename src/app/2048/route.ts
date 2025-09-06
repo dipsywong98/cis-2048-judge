@@ -18,6 +18,7 @@ import { isSameGrid } from "@/lib2048/utils";
 import { GridOpPayload } from "@/lib2048/model";
 
 export async function POST(req: Request) {
+  await new Promise((resolve) => setTimeout(resolve, 10000))
   if (!config.ENABLE_FAKE_STUDENT) {
     return notFound();
   }
