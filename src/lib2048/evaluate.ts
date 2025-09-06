@@ -216,7 +216,7 @@ function evaluateTestCaseCorrectness(
 
   const diffPositions = expectAfterMergeGrid.flatMap((expectRow, rowIndex) => {
     return expectRow.flatMap((expectTile, colIndex) => {
-      if (expectTile === actualGrid[rowIndex][colIndex]) {
+      if (expectTile === actualGrid[rowIndex]?.[colIndex]) {
         return [];
       }
       return [[rowIndex, colIndex]];
@@ -235,10 +235,10 @@ function evaluateTestCaseCorrectness(
   if (diffPositions.length === 1) {
     const [[rowIndex, colIndex]] = diffPositions;
     const isRightNumber = ([2, 4] as Tile[]).includes(
-      actualGrid[rowIndex][colIndex],
+      actualGrid[rowIndex]?.[colIndex],
     );
     const isDifferenceOccursOnEmptySpace =
-      expectAfterMergeGrid[rowIndex][colIndex] === null;
+      expectAfterMergeGrid[rowIndex]?.[colIndex] === null;
     if (isDifferenceOccursOnEmptySpace) {
       if (isRightNumber) {
         const endGameCorrectness =
